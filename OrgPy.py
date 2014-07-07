@@ -10,7 +10,7 @@ import sys
 import os
 import re
 
-sys.path.append( "../libverbose/python" )
+sys.path.append( "../verbose/python" )
 
 from Verbose import *
 
