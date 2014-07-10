@@ -25,9 +25,24 @@ class OrgModeContent :
         self.__content = []
     # end def
     
+    def __str__( self ) :
+        return "%s: %s, %s" % (self.__class__.__name__, self.__line, self.__options, )
+    # end def
+    
     def append( self, content ) :
         assert( isinstance( content, OrgModeContent ) )
         self.__content.append( content )
+    # end def
+
+    def pop( self ) :
+        return self.__content.pop()
+    # end def
+    
+    def peek( self ) :
+        try :
+            return self.__content[-1]
+        except IndexError:
+            return None
     # end def
     
     def add( self, option ) :
@@ -35,24 +50,26 @@ class OrgModeContent :
         self.__options.append( option )
     # end def
     
-    def dump( self, indent = 0 ) :
-        
+    def dump( self, indent = 0 ) :    
         ind = ""
         for i in range( indent ) :
             ind = "%s " % ind
         
-        printf( "%s%s: '%s', %s", ind, self.__class__.__name__, self.__line, self.__options ) 
+        printf( "%s%s", ind, self ) 
         
         for c in self.__content :
             c.dump( indent+1 )
-        
     # end def
 # end class
 
 class Heading( OrgModeContent ) :
-    def __init__( self, line, options, depth ) :
+    def __init__( self, line, depth ) :
         OrgModeContent.__init__( self, line )
         self.depth = depth
+    # end def
+
+    def __str__( self ) :
+        return "%s @ %s" % ( OrgModeContent.__str__( self ), self.depth )
     # end def
 # end class
 
@@ -129,19 +146,20 @@ class OrgPy :
         
         
         
-        heading = re.compile( "^\*+ " )
+        heading  = re.compile( "^\*+ " )
         
         
-        table   = re.compile( "\|-*-\||\|.*\|" )
-        column  = re.compile( "\||\+" )
+        table    = re.compile( "\|-*-\||\|.*\|" )
+        column   = re.compile( "\||\+" )
         
-        itemize = re.compile( "-\s|\+\s" )
+        itemize  = re.compile( "-\s|\+\s" )
         
-        italic  = re.compile( "/\S+/" )
-        bold    = re.compile( "\*\S+\*" )
-        link    = re.compile( "(http://\S+)" )
+        italic   = re.compile( "/\S+/" )
+        bold     = re.compile( "\*\S+\*" )
+        link     = re.compile( "(http://\S+)" )
         
-        ignore  = re.compile( "[\n]|\*\*" )
+        ignore   = re.compile( "[\n]" )
+        suppress = re.compile( "\*\*" )
         
         content = OrgModeContent( None )
         
@@ -152,15 +170,52 @@ class OrgPy :
             self._file.append( line )
             
             line = ignore.sub( "", line )
-            
+             
             h = heading.findall( line )
             if len( h ) > 0 :
-                printf( "%{magenta:%s%}", len(h[0])-1 )
-                line = line[ len(h[0]) : ]
+                depth = len(h[0])-2
+                printf( "%{magenta:%s%}", depth )
+                line = line[ depth+2 : ]
+                                
+                section = Heading( line, depth )
                 
-                content.append( Heading( line, [], len(h[0])-1 ) )
-                
+                printf( "%{red:%s, \n%s%}", section, stack )
+
+
+                if isinstance( stack[-1], Heading ) :
+                    if depth > stack[-1].depth :
+                        printf( "%{Green:>>%}" )
+                        stack[-1].append( section )
+                        stack.append( section )
+                        
+                    elif depth < stack[-1].depth :
+                        printf( "%{Green:<<%}" )
+                        stack.pop()
+                        
+                        while True :
+                            stack.pop()
+                            
+                            if isinstance( stack[-1], Heading ) :
+                                if stack[-1].depth < depth :
+                                    break
+                            else :
+                                break
+                        
+                        stack[-1].append( section )
+                        stack.append( section )
+                        
+                    else :
+                        printf( "%{Green:==%}" )
+                        stack.pop()
+                        stack[-1].append( section )
+                        stack.append( section )
+                        
+                else :
+                    printf( "%{Green:append%}" )
+                    stack[-1].append( section )
+                    stack.append( section )                        
             
+            line = suppress.sub( "", line )
             
             for i in italic.finditer( line ) :
                 printf( "%{green:%s%}", i.span() )
@@ -179,11 +234,11 @@ class OrgPy :
             for i in link.finditer( line ) :
                 printf( "%{blue:%s%}", i.span() )
             
-            printf( "%-50s%-3i: h=%s", line, cnt, h )
+            #printf( "%-50s%-3i: h=%s", line, cnt, h )
             cnt = cnt + 1
         
         printf( "%s", len( self._file ) )
-
+        
         content.dump()
         
     # end def

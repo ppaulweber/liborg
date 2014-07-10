@@ -8,9 +8,11 @@
 
 from OrgPy import *
 
+
 if __name__ == "__main__" :
     
-    
-    
-    OrgPy( ".attic/test.org" )
-    
+    if len(sys.argv) != 2 :
+        print "usage: python main.py <ORG-FILE>"
+        sys.exit(-1)
+
+    OrgPy( sys.argv[1] )
