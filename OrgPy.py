@@ -16,10 +16,27 @@ from Verbose import *
 
 
 #==============================================================================
-# OPTIONS
+# STYLES
 #==============================================================================
 
-class OrgModeOption( object ) :
+class OrgModeStyle( object ) :
+    pass
+# end class
+
+class Italic( OrgModeStyle ) :
+    regex = re.compile( "/\S+/" )
+        
+    pass
+# end class
+
+class Bold( OrgModeStyle ) :
+    regex = re.compile( "\*\S+\*" )
+    
+    pass
+# end class
+
+class Link( OrgModeStyle ) :
+    regex = re.compile( "(http://\S*)|(https://\S*)|(file://\S*)|(ftp://\S*)")
     pass
 # end class
 
@@ -28,15 +45,25 @@ class OrgModeOption( object ) :
 # ORGMODE CONTENT (BASE CLASS)
 #==============================================================================
 
-class OrgModeContent :
+class OrgModeContent( object ) :
+    
+    _style = [ Italic, Bold, Link ]
+    
     def __init__( self, line = None ) :
         self._line    = line
-        self._options = []
+        self._styles = []
         self._content = []
+        
+        if line is not None :
+
+            for e in OrgModeContent._style :
+                for i in e.regex.finditer( line ) :
+                    printf( "%{green:%s%}", i.span() )
+                    self._styles.append( e() )
     # end def
     
     def __str__( self ) :
-        return "%s: %s, %s" % (self.__class__.__name__, self._line, self._options, )
+        return "%s" % (self.__class__.__name__)
     # end def
     
     def append( self, content ) :
@@ -55,9 +82,9 @@ class OrgModeContent :
             return None
     # end def
     
-    def add( self, option ) :
-        assert( isinstance( option, OrgModeOption ) )
-        self._options.append( option )
+    def add( self, style ) :
+        assert( isinstance( style, OrgModeStyle ) )
+        self._styles.append( style )
     # end def
     
     def dump( self, indent = 0 ) :    
@@ -78,13 +105,19 @@ class OrgModeContent :
 #==============================================================================
 
 class Heading( OrgModeContent ) :
+    regex = re.compile( "^\*+ " )
+    
     def __init__( self, line, depth ) :
         OrgModeContent.__init__( self, line )
-        self.depth = depth
+        self._depth = depth
     # end def
 
     def __str__( self ) :
-        return "%s @ %s" % ( OrgModeContent.__str__( self ), self.depth )
+        return transform( "%{Magenta:%s(%i):%} %s %{yellow:%s%}" ) % \
+            ( OrgModeContent.__str__( self )
+            , self._depth
+            , self._line
+            , self._styles )
     # end def
 # end class
 
@@ -103,6 +136,13 @@ class ParagraphLine( OrgModeContent ) :
     def __init__( self, line ) :
         OrgModeContent.__init__( self, line )
     # end def
+        
+    def __str__( self ) :
+        return transform( "%{Green:%s:%} %s <TODO> %{yellow:%s%}" ) % \
+            ( OrgModeContent.__str__( self )
+            , self._line
+            , self._styles )
+    # end def
 
     def append( self, content ) :
         assert( isinstance( content, Paragraph ) )
@@ -116,6 +156,8 @@ class ParagraphLine( OrgModeContent ) :
 #==============================================================================
 
 class Table( OrgModeContent ) :
+    regex = re.compile( "\|-*-\||\|.*\|" )
+    
     def __init__( self ) :
         OrgModeContent.__init__( self )
     # end def
@@ -127,14 +169,17 @@ class Table( OrgModeContent ) :
 # end class
 
 class TableRow( OrgModeContent ) :
+    regex = re.compile( "\||\+" )
+    
     def __init__( self, line = None ) :
         OrgModeContent.__init__( self, line )
     # end def
-# end class
 
-class TableLine( TableRow ) :
-    def __init__( self ) :
-        TableRow.__init__( self )
+    def __str__( self ) :
+        return transform( "%{Blue:%s:%} %s <TODO> %{yellow:%s%}" ) % \
+            ( OrgModeContent.__str__( self )
+            , self._line
+            , self._styles )
     # end def
 # end class
 
@@ -144,6 +189,8 @@ class TableLine( TableRow ) :
 #==============================================================================
         
 class List( OrgModeContent ) :
+    regex = re.compile( "-\s|\+\s" )
+    
     def __init__( self ) :
         OrgModeContent.__init__( self )
     # end def
@@ -157,7 +204,15 @@ class List( OrgModeContent ) :
 class ListItem( OrgModeContent ) :
     def __init__( self, line ) :
         OrgModeContent.__init__( self, line )
-        self.depth = 0 # TODO
+        self._depth = 0 # TODO
+    # end def
+
+    def __str__( self ) :
+        return transform( "%{Cyan:%s(%i):%} %s <TODO> %{yellow:%s%}" ) % \
+            ( OrgModeContent.__str__( self )
+            , self._depth
+            , self._line
+            , self._styles )
     # end def
 # end class
 
@@ -169,38 +224,23 @@ class OrgPy :
     
     
     
-    def __init__( self, filename, **option ) :
+    def __init__( self, filename, **configuration ) :
         
         if not os.path.exists( filename ) :
             assert( 0 )
         
         self._filename = filename;
+        self._content = OrgModeContent( None )
         self._file = []
-        
-        self._structure = []
         
         orgfile = open( filename, "r" )    
         
         
         
-        heading  = re.compile( "^\*+ " )
-        
-        
-        table    = re.compile( "\|-*-\||\|.*\|" )
-        column   = re.compile( "\||\+" )
-        
-        itemize  = re.compile( "-\s|\+\s" )
-        
-        italic   = re.compile( "/\S+/" )
-        bold     = re.compile( "\*\S+\*" )
-        link     = re.compile( "(http://\S+)" )
-        
         ignore   = re.compile( "[\n]" )
         suppress = re.compile( "\*\*" )
         
-        content = OrgModeContent( None )
-        
-        stack = [ content ]
+        stack = [ self._content ]
         
         cnt = 0
         for line in orgfile.readlines() :
@@ -208,7 +248,7 @@ class OrgPy :
             
             line = ignore.sub( "", line )
              
-            h = heading.findall( line )
+            h = Heading.regex.findall( line )
             if len( h ) > 0 :
                 depth = len(h[0])-2
                 printf( "%{magenta:%s%}", depth )
@@ -217,15 +257,15 @@ class OrgPy :
                 section = Heading( line, depth )
                 
                 printf( "%{red:%s, \n%s%}", section, stack )
-
-
+                
+                
                 if isinstance( stack[-1], Heading ) :
-                    if depth > stack[-1].depth :
+                    if depth > stack[-1]._depth :
                         printf( "%{Green:>>%}" )
                         stack[-1].append( section )
                         stack.append( section )
                         
-                    elif depth < stack[-1].depth :
+                    elif depth < stack[-1]._depth :
                         printf( "%{Green:<<%}" )
                         stack.pop()
                         
@@ -233,7 +273,7 @@ class OrgPy :
                             stack.pop()
                             
                             if isinstance( stack[-1], Heading ) :
-                                if stack[-1].depth < depth :
+                                if stack[-1]._depth < depth :
                                     break
                             else :
                                 break
@@ -251,35 +291,27 @@ class OrgPy :
                     printf( "%{Green:append%}" )
                     stack[-1].append( section )
                     stack.append( section )                        
+                continue
             
             text = True
             
             line = suppress.sub( "", line )
             
+            elements = [ (Table, TableRow), (List, ListItem) ]
             
-            for i in table.finditer( line ) :
-                text = False
-                last = stack[-1].peek()
-                if last is None \
-                or not isinstance( last, Table ):
-                    stack[-1].append( Table() )
-                stack[-1].peek().append( TableRow( line ) )
-                printf( "%{yellow:%s%}", i.span() )
-                printf( "%{Yellow:%s%}", line[ i.span()[0] : i.span()[1] ].split("|") )
-                
-            if not text :
-                continue
+            for e in elements :
+                for i in e[0].regex.finditer( line ) :
+                    text = False
+                    last = stack[-1].peek()
+                    if last is None \
+                    or not isinstance( last, e[0] ):
+                        stack[-1].append( e[0]() )
+                    stack[-1].peek().append( e[1]( line ) )
+                    printf( "%{yellow:%s%}", i.span() )
+                    printf( "%{Yellow:%s%}", line[ i.span()[0] : i.span()[1] ].split("|") )
 
-            for i in itemize.finditer( line ) :
-                text = False
-                last = stack[-1].peek()
-                if last is None \
-                or not isinstance( last, List ):
-                    stack[-1].append( List() )
-                stack[-1].peek().append( ListItem( line ) )
-                printf( "%{yellow:%s%}", i.span() )
-                printf( "%{Yellow:%s%}", line[ i.span()[0] : i.span()[1] ].split("|") )
-
+                if not text :
+                    break 
             if not text :
                 continue
             
@@ -297,21 +329,9 @@ class OrgPy :
         
         printf( "%s", len( self._file ) )
         
-        content.dump()
+        self._content.dump()
         
     # end def
-        
-    def __parse_option( self, line ) :
-
-        for i in italic.finditer( line ) :
-            printf( "%{green:%s%}", i.span() )
-            
-        for i in bold.finditer( line ) :
-            printf( "%{yellow:%s%}", i.span() )
-                
-        for i in link.finditer( line ) :
-            printf( "%{blue:%s%}", i.span() )
-
-    # end def
+    
         
 # end class
