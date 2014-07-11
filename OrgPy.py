@@ -14,40 +14,50 @@ sys.path.append( "../verbose/python" )
 
 from Verbose import *
 
+
+#==============================================================================
+# OPTIONS
+#==============================================================================
+
 class OrgModeOption( object ) :
     pass
 # end class
 
+
+#==============================================================================
+# ORGMODE CONTENT (BASE CLASS)
+#==============================================================================
+
 class OrgModeContent :
     def __init__( self, line = None ) :
-        self.__line    = line
-        self.__options = []
-        self.__content = []
+        self._line    = line
+        self._options = []
+        self._content = []
     # end def
     
     def __str__( self ) :
-        return "%s: %s, %s" % (self.__class__.__name__, self.__line, self.__options, )
+        return "%s: %s, %s" % (self.__class__.__name__, self._line, self._options, )
     # end def
     
     def append( self, content ) :
         assert( isinstance( content, OrgModeContent ) )
-        self.__content.append( content )
+        self._content.append( content )
     # end def
 
     def pop( self ) :
-        return self.__content.pop()
+        return self._content.pop()
     # end def
     
     def peek( self ) :
         try :
-            return self.__content[-1]
+            return self._content[-1]
         except IndexError:
             return None
     # end def
     
     def add( self, option ) :
         assert( isinstance( option, OrgModeOption ) )
-        self.__options.append( option )
+        self._options.append( option )
     # end def
     
     def dump( self, indent = 0 ) :    
@@ -57,10 +67,15 @@ class OrgModeContent :
         
         printf( "%s%s", ind, self ) 
         
-        for c in self.__content :
+        for c in self._content :
             c.dump( indent+1 )
     # end def
 # end class
+
+
+#==============================================================================
+# HEADING AND SECTIONS
+#==============================================================================
 
 class Heading( OrgModeContent ) :
     def __init__( self, line, depth ) :
@@ -73,11 +88,28 @@ class Heading( OrgModeContent ) :
     # end def
 # end class
 
+
+#==============================================================================
+# PARAGRAPH
+#==============================================================================
+
 class Paragraph( OrgModeContent ) :
     def __init__( self ) :
         OrgModeContent.__init__( self )
     # end def
 # end class
+
+class ParagraphLine( OrgModeContent ) :
+    def __init__( self, line ) :
+        OrgModeContent.__init__( self, line )
+    # end def
+
+    def append( self, content ) :
+        assert( isinstance( content, Paragraph ) )
+        self._content.append( content )
+    # end def
+# end class
+
 
 #==============================================================================
 # TABLE
@@ -89,8 +121,8 @@ class Table( OrgModeContent ) :
     # end def
 
     def append( self, content ) :
-        assert( issubclass( content, TableRow ) )
-        self.__content.append( content )
+        assert( isinstance( content, TableRow ) )
+        self._content.append( content )
     # end def
 # end class
 
@@ -106,21 +138,26 @@ class TableLine( TableRow ) :
     # end def
 # end class
 
+
 #==============================================================================
 # LIST
 #==============================================================================
         
 class List( OrgModeContent ) :
-    def __init__( self, line, options, depth ) :
-        OrgModeContent.__init__( self, line )
-        self.depth = depth
+    def __init__( self ) :
+        OrgModeContent.__init__( self )
+    # end def
+
+    def append( self, content ) :
+        assert( isinstance( content, ListItem ) )
+        self._content.append( content )
     # end def
 # end class
 
-class lal( OrgModeContent ) :
-    def __init__( self, line, options, depth ) :
+class ListItem( OrgModeContent ) :
+    def __init__( self, line ) :
         OrgModeContent.__init__( self, line )
-        self.depth = depth
+        self.depth = 0 # TODO
     # end def
 # end class
 
@@ -215,24 +252,45 @@ class OrgPy :
                     stack[-1].append( section )
                     stack.append( section )                        
             
+            text = True
+            
             line = suppress.sub( "", line )
             
-            for i in italic.finditer( line ) :
-                printf( "%{green:%s%}", i.span() )
-            
-            for i in bold.finditer( line ) :
-                printf( "%{yellow:%s%}", i.span() )
             
             for i in table.finditer( line ) :
+                text = False
+                last = stack[-1].peek()
+                if last is None \
+                or not isinstance( last, Table ):
+                    stack[-1].append( Table() )
+                stack[-1].peek().append( TableRow( line ) )
                 printf( "%{yellow:%s%}", i.span() )
-                printf( "%{yellow:%s%}", line[ i.span()[0] : i.span()[1] ].split("|") )
-            #    printf( "%{yellow:%s%}", column.split( line[ i.span()[0] : i.span()[1] ]) )
-            
-            for i in itemize.finditer( line ) :
-                printf( "%{yellow:%s%}", i.span() )
+                printf( "%{Yellow:%s%}", line[ i.span()[0] : i.span()[1] ].split("|") )
                 
-            for i in link.finditer( line ) :
-                printf( "%{blue:%s%}", i.span() )
+            if not text :
+                continue
+
+            for i in itemize.finditer( line ) :
+                text = False
+                last = stack[-1].peek()
+                if last is None \
+                or not isinstance( last, List ):
+                    stack[-1].append( List() )
+                stack[-1].peek().append( ListItem( line ) )
+                printf( "%{yellow:%s%}", i.span() )
+                printf( "%{Yellow:%s%}", line[ i.span()[0] : i.span()[1] ].split("|") )
+
+            if not text :
+                continue
+            
+            if text :
+                if len( line ) > 0 :
+                    # text found
+                    last = stack[-1].peek()
+                    if last is None or not isinstance( last, Paragraph ) :
+                        stack[-1].append( Paragraph() )
+                    
+                    stack[-1].peek().append( ParagraphLine( line ) )
             
             #printf( "%-50s%-3i: h=%s", line, cnt, h )
             cnt = cnt + 1
@@ -242,4 +300,18 @@ class OrgPy :
         content.dump()
         
     # end def
+        
+    def __parse_option( self, line ) :
+
+        for i in italic.finditer( line ) :
+            printf( "%{green:%s%}", i.span() )
+            
+        for i in bold.finditer( line ) :
+            printf( "%{yellow:%s%}", i.span() )
+                
+        for i in link.finditer( line ) :
+            printf( "%{blue:%s%}", i.span() )
+
+    # end def
+        
 # end class
