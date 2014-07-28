@@ -16,7 +16,7 @@ from Verbose import *
 
 
 #==============================================================================
-# STYLES
+# ORG-MODE STYLES
 #==============================================================================
 
 class OrgModeStyle( object ) :
@@ -42,7 +42,7 @@ class Link( OrgModeStyle ) :
 
 
 #==============================================================================
-# ORGMODE CONTENT (BASE CLASS)
+# ORG-MODE CONTENT
 #==============================================================================
 
 class OrgModeContent( object ) :
@@ -130,6 +130,11 @@ class Paragraph( OrgModeContent ) :
     def __init__( self ) :
         OrgModeContent.__init__( self )
     # end def
+
+    def append( self, content ) :
+        assert( isinstance( content, ParagraphLine ) )
+        self._content.append( content )
+    # end def
 # end class
 
 class ParagraphLine( OrgModeContent ) :
@@ -144,10 +149,6 @@ class ParagraphLine( OrgModeContent ) :
             , self._styles )
     # end def
 
-    def append( self, content ) :
-        assert( isinstance( content, Paragraph ) )
-        self._content.append( content )
-    # end def
 # end class
 
 
@@ -203,7 +204,13 @@ class List( OrgModeContent ) :
 
 class ListItem( OrgModeContent ) :
     def __init__( self, line ) :
+        
+        
+        
         OrgModeContent.__init__( self, line )
+        
+        
+        
         self._depth = 0 # TODO
     # end def
 
@@ -217,13 +224,59 @@ class ListItem( OrgModeContent ) :
 # end class
 
 
+#==============================================================================
+# ORG-MODE OPTION
+#==============================================================================
+
+class Option( OrgModeContent ) :
+    regex = re.compile( "#+" )
+    
+    def __init__( self, line ) :
+        OrgModeContent.__init__( self, line )
+    # end def
+# end class
+
+class Mark( Option ) :
+    regex = re.compile( "\S*:" )
+    
+    def __init__( self, line ) :
+        OrgModeContent.__init__( self, line )
+    # end def
+# end class
+
+class Block( Option ) :
+    regex     = re.compile( "begin_" )
+    regex_end = re.compile( "end_" )
+    
+    def __init__( self, line ) :
+        OrgModeContent.__init__( self, line )
+    # end def
+    
+    def append( self, content ) :
+        assert( isinstance( content, ListItem ) )
+        self._content.append( content )
+    # end def
+# end class
+
+class Source( Block ) :
+    regex = re.compile( "src" )
+    
+    def __init__( self, line ) :
+        OrgModeContent.__init__( self, line )
+    # end def
+    
+    def append( self, content ) :
+        assert( isinstance( content, ParagraphLine ) )
+        self._content.append( content )
+    # end def
+# end class
 
 
+#==============================================================================
+# ORG-PY
+#==============================================================================
 
 class OrgPy :
-    
-    
-    
     def __init__( self, filename, **configuration ) :
         
         if not os.path.exists( filename ) :
@@ -293,23 +346,37 @@ class OrgPy :
                     stack.append( section )                        
                 continue
             
-            text = True
             
+            text = True
             line = suppress.sub( "", line )
             
-            elements = [ (Table, TableRow), (List, ListItem) ]
+            
+            for i in Option.regex.finditer( line ) :
+                stack[-1].append( Option( line ) )
+                printf( "%{cyan:%s -> %s%}", line, i.span() )
+                text = False
+                break
+            
+            if not text :
+                continue
+            
+            
+            elements = [ (Table,  TableRow)
+                       , (List,   ListItem)
+                       ]
             
             for e in elements :
                 for i in e[0].regex.finditer( line ) :
                     text = False
                     last = stack[-1].peek()
                     if last is None \
-                    or not isinstance( last, e[0] ):
+                    or not isinstance( last, e[0] ) :
                         stack[-1].append( e[0]() )
+                    
                     stack[-1].peek().append( e[1]( line ) )
                     printf( "%{yellow:%s%}", i.span() )
                     printf( "%{Yellow:%s%}", line[ i.span()[0] : i.span()[1] ].split("|") )
-
+                    
                 if not text :
                     break 
             if not text :
