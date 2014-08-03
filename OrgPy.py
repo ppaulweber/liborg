@@ -15,6 +15,7 @@ sys.path.append( "../verbose/python" )
 from Verbose import *
 
 
+
 #==============================================================================
 # ORG-MODE STYLES
 #==============================================================================
@@ -58,7 +59,7 @@ class OrgModeContent( object ) :
 
             for e in OrgModeContent._style :
                 for i in e.regex.finditer( line ) :
-                    printf( "%{green:%s%}", i.span() )
+                    printf( "%{green:%s%}\n", i.span() )
                     self._styles.append( e() )
     # end def
     
@@ -70,7 +71,7 @@ class OrgModeContent( object ) :
         assert( isinstance( content, OrgModeContent ) )
         self._content.append( content )
     # end def
-
+    
     def pop( self ) :
         return self._content.pop()
     # end def
@@ -87,16 +88,39 @@ class OrgModeContent( object ) :
         self._styles.append( style )
     # end def
     
-    def dump( self, indent = 0 ) :    
+    def dump( self, stream, indent = 0 ) :    
         ind = ""
         for i in range( indent ) :
             ind = "%s " % ind
         
-        printf( "%s%s", ind, self ) 
+        printf( "%s%s\n", ind, self, stream = stream ) 
         
         for c in self._content :
-            c.dump( indent+1 )
+            c.dump( stream, indent+1 )
     # end def
+
+    def generate( self, stream, emit ) :
+        
+        # process line or field!
+        
+        if self.__class__ in emit :
+            self.generate_pre( stream, emit[ self.__class__ ] )
+        
+        for c in self._content :
+            c.generate( stream, emit )
+
+        if self.__class__ in emit :
+            self.generate_post( stream, emit[ self.__class__ ] )
+    # end def
+    
+    def generate_pre( self, stream, emit ) :
+        pass
+    # end def
+    
+    def generate_post( self, stream, emit ) :
+        pass
+    # end def
+    
 # end class
 
 
@@ -111,7 +135,7 @@ class Heading( OrgModeContent ) :
         OrgModeContent.__init__( self, line )
         self._depth = depth
     # end def
-
+    
     def __str__( self ) :
         return transform( "%{Magenta:%s(%i):%} %s %{yellow:%s%}" ) % \
             ( OrgModeContent.__str__( self )
@@ -119,6 +143,17 @@ class Heading( OrgModeContent ) :
             , self._line
             , self._styles )
     # end def
+    
+    def generate_pre( self, stream, emit ) :
+        if emit[ 0 ] is not None:
+            stream.write( unicode( emit[ 0 ]( self._depth + 1, self._line ) ) )
+    # end def
+
+    def generate_post( self, stream, emit ) :
+        if emit[ 1 ] is not None:
+            stream.write( unicode( emit[ 1 ]( self._depth + 1, self._line ) ) )
+    # end def
+    
 # end class
 
 
@@ -204,12 +239,8 @@ class List( OrgModeContent ) :
 
 class ListItem( OrgModeContent ) :
     def __init__( self, line ) :
-        
-        
-        
+                        
         OrgModeContent.__init__( self, line )
-        
-        
         
         self._depth = 0 # TODO
     # end def
@@ -276,8 +307,37 @@ class Source( Block ) :
 # ORG-PY
 #==============================================================================
 
+
+org_mode = \
+{
+}
+
+
+html = \
+{ Heading : ( ( lambda depth, line : 
+                "<h%s>%s</h%s>\n" % (depth, line, depth) if depth < 4 else 
+                "<div>%s</div>\n" % line 
+              )
+            , None #( lambda depth, line : "" )
+            )
+}
+
+latex = \
+{ Heading : ( ( lambda depth, line : 
+                "\section{%s}\n"       % line if depth == 0 else
+                "\subsection{%s}\n"    % line if depth == 1 else
+                "\subsubsection{%s}\n" % line if depth == 2 else
+                "\paragraph{%s}\n"     % line if depth == 3 else
+                "\subparagraph{%s}\n"  % line if depth == 3 else
+                "<div>%s</div>\n" % line 
+              )
+            , None #( lambda depth, line : "" )
+            )
+}
+
+
 class OrgPy :
-    def __init__( self, filename, **configuration ) :
+    def __init__( self, filename, configuration = org_mode ) :
         
         if not os.path.exists( filename ) :
             assert( 0 )
@@ -304,17 +364,17 @@ class OrgPy :
             h = Heading.regex.findall( line )
             if len( h ) > 0 :
                 depth = len(h[0])-2
-                printf( "%{magenta:%s%}", depth )
+                printf( "%{magenta:%s%}\n", depth )
                 line = line[ depth+2 : ]
                                 
                 section = Heading( line, depth )
                 
-                printf( "%{red:%s, \n%s%}", section, stack )
+                printf( "%{red:%s, \n%s%}\n", section, stack )
                 
                 
                 if isinstance( stack[-1], Heading ) :
                     if depth > stack[-1]._depth :
-                        printf( "%{Green:>>%}" )
+                        printf( "%{Green:>>%}\n" )
                         stack[-1].append( section )
                         stack.append( section )
                         
@@ -335,13 +395,13 @@ class OrgPy :
                         stack.append( section )
                         
                     else :
-                        printf( "%{Green:==%}" )
+                        printf( "%{Green:==%}\n" )
                         stack.pop()
                         stack[-1].append( section )
                         stack.append( section )
                         
                 else :
-                    printf( "%{Green:append%}" )
+                    printf( "%{Green:append%}\n" )
                     stack[-1].append( section )
                     stack.append( section )                        
                 continue
@@ -353,7 +413,7 @@ class OrgPy :
             
             for i in Option.regex.finditer( line ) :
                 stack[-1].append( Option( line ) )
-                printf( "%{cyan:%s -> %s%}", line, i.span() )
+                printf( "%{cyan:%s -> %s%}\n", line, i.span() )
                 text = False
                 break
             
@@ -374,8 +434,8 @@ class OrgPy :
                         stack[-1].append( e[0]() )
                     
                     stack[-1].peek().append( e[1]( line ) )
-                    printf( "%{yellow:%s%}", i.span() )
-                    printf( "%{Yellow:%s%}", line[ i.span()[0] : i.span()[1] ].split("|") )
+                    printf( "%{yellow:%s%}\n", i.span() )
+                    printf( "%{Yellow:%s%}\n", line[ i.span()[0] : i.span()[1] ].split("|") )
                     
                 if not text :
                     break 
@@ -391,13 +451,26 @@ class OrgPy :
                     
                     stack[-1].peek().append( ParagraphLine( line ) )
             
-            #printf( "%-50s%-3i: h=%s", line, cnt, h )
+            #printf( "%-50s%-3i: h=%s\n", line, cnt, h )
             cnt = cnt + 1
         
-        printf( "%s", len( self._file ) )
         
-        self._content.dump()
+    # end def
+    
+    def dump( self, stream = sys.stderr ) :
+        printf( "%s\n", len( self._file ) )
+        self._content.dump( stream )
+    # end def
+    
+    def generate( self, stream = sys.stdout, emit = html ) :
         
+        from datetime import datetime
+        
+        stream.write( u"%s\n" % datetime.utcnow() )
+        
+        self._content.generate( stream, emit )
+        
+        #print stream
     # end def
     
         

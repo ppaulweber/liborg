@@ -6,8 +6,10 @@
 # file in the project root directory.
 #
 
-from OrgPy import *
+from OrgPy import OrgPy, latex
 
+import sys
+import io
 
 if __name__ == "__main__" :
     
@@ -15,4 +17,18 @@ if __name__ == "__main__" :
         print "usage: python main.py <ORG-FILE>"
         sys.exit(-1)
 
-    OrgPy( sys.argv[1] )
+    file_name = sys.argv[1]    
+    
+    orgpy = OrgPy( file_name )
+    
+    print "DUMPING"
+    orgpy.dump()
+    
+    print "EMITING CODE"
+    
+    with io.open( file_name + ".html" , "w" ) as fd:
+        orgpy.generate( fd )
+
+    with io.open( file_name + ".tex" , "w" ) as fd:
+        orgpy.generate( fd, emit=latex )
+    
