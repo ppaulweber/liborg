@@ -21,25 +21,46 @@ from Verbose import *
 #==============================================================================
 
 class OrgModeStyle( object ) :
-    pass
-# end class
-
-class Italic( OrgModeStyle ) :
-    regex = re.compile( "/\S+/" )
-        
-    pass
-# end class
-
-class Bold( OrgModeStyle ) :
-    regex = re.compile( "\*\S+\*" )
+    prefix  = None
+    postfix = None
     
-    pass
+    def __init__( self, prefix, postfix = None ) :
+        
+        if postfix is None :
+            postfix = prefix
+        
+        if prefix is None \
+        or len( prefix ) == 0 :
+            assert( 0 )
+        
+        if postfix is None \
+        or len( postfix ) == 0 :
+            assert( 0 )
+        
+        self.prefix  = prefix
+        self.postfix = postfix
+    # end def
 # end class
 
-class Link( OrgModeStyle ) :
-    regex = re.compile( "(http://\S*)|(https://\S*)|(file://\S*)|(ftp://\S*)")
-    pass
+class Italic( OrgModeStyle ) : pass
+#    regex = re.compile( "/\S+/" )
+#end class
+
+class Bold( OrgModeStyle ) : pass
+#    regex = re.compile( "\*\S+\*" )
 # end class
+
+class Link( OrgModeStyle ) : pass
+#    regex = re.compile( "(http://\S*)|(https://\S*)|(file://\S*)|(ftp://\S*)")
+# end class
+
+
+ORG_MODE = \
+[ Bold( "*" )
+, Italic( "/" )
+, Link( "s" )
+]
+
 
 
 #==============================================================================
@@ -48,7 +69,7 @@ class Link( OrgModeStyle ) :
 
 class OrgModeContent( object ) :
     
-    _style = [ Italic, Bold, Link ]
+   # _style = [ Italic ] #, Bold, Link ]
     
     def __init__( self, line = None ) :
         self._line    = line
@@ -56,11 +77,11 @@ class OrgModeContent( object ) :
         self._content = []
         
         if line is not None :
-
-            for e in OrgModeContent._style :
-                for i in e.regex.finditer( line ) :
-                    printf( "%{green:%s%}\n", i.span() )
-                    self._styles.append( e() )
+            pass
+            # for e in OrgModeContent._style :
+            #     for i in e.regex.finditer( line ) :
+            #         printf( "%{green:%s%}\n", i.span() )
+            #         self._styles.append( e() )
     # end def
     
     def __str__( self ) :
@@ -291,6 +312,8 @@ class Mark( Option ) :
     # end def
 # end class
 
+# #+MARK{:,_BLOCK {OPTION}}
+
 class Block( Option ) :
     regex     = re.compile( "begin_" )
     regex_end = re.compile( "end_" )
@@ -305,28 +328,24 @@ class Block( Option ) :
     # end def
 # end class
 
-class Source( Block ) :
-    regex = re.compile( "src" )
+# class Source( Block ) :
+#     regex = re.compile( "src" )
     
-    def __init__( self, line ) :
-        OrgModeContent.__init__( self, line )
-    # end def
+#     def __init__( self, line ) :
+#         OrgModeContent.__init__( self, line )
+#     # end def
     
-    def append( self, content ) :
-        assert( isinstance( content, ParagraphLine ) )
-        self._content.append( content )
-    # end def
-# end class
+#     def append( self, content ) :
+#         assert( isinstance( content, ParagraphLine ) )
+#         self._content.append( content )
+#     # end def
+# # end class
 
 
 #==============================================================================
 # ORG-PY
 #==============================================================================
 
-
-org_mode = \
-{
-}
 
 HTML = \
 { "comment" : ( lambda text : "<!-- %s -->\n" % text )
@@ -341,7 +360,7 @@ HTML = \
               , ( lambda : "</div>\n" )
               )
 
-, ParagraphLine : ( lambda line : line )
+, ParagraphLine : ( lambda line : "%s\n" % line )
 }
 
 LATEX = \
@@ -357,11 +376,16 @@ LATEX = \
               , None
               )
 
+, Paragraph : ( ( lambda : "" )
+              , ( lambda : "\n" )
+              )
+
+, ParagraphLine : ( lambda line : "%s\n" % line )
 }
 
 
 class OrgPy :
-    def __init__( self, filename, configuration = org_mode ) :
+    def __init__( self, filename, configuration = ORG_MODE ) :
         
         if not os.path.exists( filename ) :
             assert( 0 )
