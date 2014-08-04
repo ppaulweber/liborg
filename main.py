@@ -6,7 +6,7 @@
 # file in the project root directory.
 #
 
-from OrgPy import OrgPy, latex
+from OrgPy import OrgPy, LATEX
 
 import sys
 import io
@@ -26,9 +26,11 @@ if __name__ == "__main__" :
     
     print "EMITING CODE"
     
+    file_name = ".attic/out"
+    
     with io.open( file_name + ".html" , "w" ) as fd:
         orgpy.generate( fd )
 
     with io.open( file_name + ".tex" , "w" ) as fd:
-        orgpy.generate( fd, emit=latex )
+        orgpy.generate( fd, emit=LATEX )
     

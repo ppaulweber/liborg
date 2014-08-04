@@ -170,6 +170,17 @@ class Paragraph( OrgModeContent ) :
         assert( isinstance( content, ParagraphLine ) )
         self._content.append( content )
     # end def
+    
+    def generate_pre( self, stream, emit ) :
+        if emit[ 0 ] is not None:
+            stream.write( unicode( emit[ 0 ]() ) )
+    # end def
+
+    def generate_post( self, stream, emit ) :
+        if emit[ 1 ] is not None:
+            stream.write( unicode( emit[ 1 ]() ) )
+    # end def
+    
 # end class
 
 class ParagraphLine( OrgModeContent ) :
@@ -182,6 +193,11 @@ class ParagraphLine( OrgModeContent ) :
             ( OrgModeContent.__str__( self )
             , self._line
             , self._styles )
+    # end def
+
+    def generate_pre( self, stream, emit ) :
+        if emit is not None:
+            stream.write( unicode( emit( self._line ) ) )
     # end def
 
 # end class
@@ -312,27 +328,35 @@ org_mode = \
 {
 }
 
+HTML = \
+{ "comment" : ( lambda text : "<!-- %s -->\n" % text )
 
-html = \
-{ Heading : ( ( lambda depth, line : 
-                "<h%s>%s</h%s>\n" % (depth, line, depth) if depth < 4 else 
-                "<div>%s</div>\n" % line 
+, Heading : ( ( lambda depth, line : 
+                "<h%s>%s</h%s>\n" % (depth, line, depth) if depth <= 4 else 
+                "<br><div><b>%s</b></div>\n" % line )
+              , None
               )
-            , None #( lambda depth, line : "" )
-            )
+
+, Paragraph : ( ( lambda : "<div>\n" )
+              , ( lambda : "</div>\n" )
+              )
+
+, ParagraphLine : ( lambda line : line )
 }
 
-latex = \
-{ Heading : ( ( lambda depth, line : 
-                "\section{%s}\n"       % line if depth == 0 else
-                "\subsection{%s}\n"    % line if depth == 1 else
-                "\subsubsection{%s}\n" % line if depth == 2 else
-                "\paragraph{%s}\n"     % line if depth == 3 else
-                "\subparagraph{%s}\n"  % line if depth == 3 else
-                "<div>%s</div>\n" % line 
+LATEX = \
+{ "comment" : ( lambda text : "%%%%%% %s\n" % text )
+
+, Heading : ( ( lambda depth, line : 
+                "\section{%s}\n"       % line if depth == 1 else
+                "\subsection{%s}\n"    % line if depth == 2 else
+                "\subsubsection{%s}\n" % line if depth == 3 else
+                "\paragraph{%s}\n"     % line if depth == 4 else
+                #"\subparagraph{%s}\n"  % line if depth == 5 else
+                "TODO\n" )
+              , None
               )
-            , None #( lambda depth, line : "" )
-            )
+
 }
 
 
@@ -360,7 +384,7 @@ class OrgPy :
             self._file.append( line )
             
             line = ignore.sub( "", line )
-             
+            
             h = Heading.regex.findall( line )
             if len( h ) > 0 :
                 depth = len(h[0])-2
@@ -443,13 +467,26 @@ class OrgPy :
                 continue
             
             if text :
+                sep = line.count( " " )
+                sep = sep + line.count( "\t" )
+                sep = sep + line.count( "\n" )
+                
+                printf( "%{Blue:%s %{red,bold:%s%}%} -> %s\n", line, text, sep )
+                
+                last = stack[-1].peek()
+                
                 if len( line ) > 0 :
-                    # text found
-                    last = stack[-1].peek()
+                    # text found                
                     if last is None or not isinstance( last, Paragraph ) :
                         stack[-1].append( Paragraph() )
                     
                     stack[-1].peek().append( ParagraphLine( line ) )
+
+                else :
+                    if  sep == len( line ) \
+                    and last is not None \
+                    and isinstance( last, Paragraph ) :
+                        stack[-1].append( Paragraph() )
             
             #printf( "%-50s%-3i: h=%s\n", line, cnt, h )
             cnt = cnt + 1
@@ -462,11 +499,16 @@ class OrgPy :
         self._content.dump( stream )
     # end def
     
-    def generate( self, stream = sys.stdout, emit = html ) :
+    def generate( self, stream = sys.stdout, emit = HTML ) :
+        
+        if "comment" not in emit \
+        or emit[ "comment" ] is None :
+            emit[ "comment" ] = ( lambda text : "" )
         
         from datetime import datetime
         
-        stream.write( u"%s\n" % datetime.utcnow() )
+        stream.write( unicode( emit[ "comment" ]( str( datetime.utcnow() ) ) ) )
+        
         
         self._content.generate( stream, emit )
         
