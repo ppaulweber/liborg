@@ -9,12 +9,15 @@
 import sys
 import os
 import re
+import io
 
 sys.path.append( "../verbose/python" )
 
 from Verbose import *
 
 
+log_file = None
+#log_file = io.open( ".attic/log", "w" )
 
 #==============================================================================
 # ORG-MODE STYLES
@@ -80,7 +83,7 @@ class OrgModeContent( object ) :
             pass
             # for e in OrgModeContent._style :
             #     for i in e.regex.finditer( line ) :
-            #         printf( "%{green:%s%}\n", i.span() )
+            #         printf( "%{green:%s%}\n", i.span(), stream = log_file )
             #         self._styles.append( e() )
     # end def
     
@@ -114,7 +117,7 @@ class OrgModeContent( object ) :
         for i in range( indent ) :
             ind = "%s " % ind
         
-        printf( "%s%s\n", ind, self, stream = stream ) 
+        printf( "%s%s\n", ind, self, stream = log_file ) 
         
         for c in self._content :
             c.dump( stream, indent+1 )
@@ -124,14 +127,14 @@ class OrgModeContent( object ) :
         
         # process line or field!
         
-        if self.__class__ in emit :
-            self.generate_pre( stream, emit[ self.__class__ ] )
+        if self.__class__.__name__ in emit :
+            self.generate_pre( stream, emit[ self.__class__.__name__ ] )
         
         for c in self._content :
             c.generate( stream, emit )
 
-        if self.__class__ in emit :
-            self.generate_post( stream, emit[ self.__class__ ] )
+        if self.__class__.__name__ in emit :
+            self.generate_post( stream, emit[ self.__class__.__name__ ] )
     # end def
     
     def generate_pre( self, stream, emit ) :
@@ -348,55 +351,60 @@ class Block( Option ) :
 
 
 HTML = \
-{ "comment" : ( lambda text : "<!-- %s -->\n" % text )
+{ "comment"       : ( lambda text : "<!-- %s -->\n" % text )
 
-, Heading : ( ( lambda depth, line : 
-                "<h%s>%s</h%s>\n" % (depth, line, depth) if depth <= 4 else 
-                "<br><div><b>%s</b></div>\n" % line )
-              , None
-              )
+, "Heading"       : ( ( lambda depth, line : 
+                        "<h%s>%s</h%s>\n" % (depth, line, depth) if depth <= 4 else 
+                        "<br><div><b>%s</b></div>\n" % line )
+                    , None
+                    )
 
-, Paragraph : ( ( lambda : "<div>\n" )
-              , ( lambda : "</div>\n" )
-              )
+, "Paragraph"     : ( ( lambda : "<div>\n" )
+                    , ( lambda : "</div>\n" )
+                    )
 
-, ParagraphLine : ( lambda line : "%s\n" % line )
+, "ParagraphLine" : ( lambda line : "%s\n" % line )
 }
 
 LATEX = \
-{ "comment" : ( lambda text : "%%%%%% %s\n" % text )
+{ "comment"       : ( lambda text : "%%%%%% %s\n" % text )
 
-, Heading : ( ( lambda depth, line : 
-                "\section{%s}\n"       % line if depth == 1 else
-                "\subsection{%s}\n"    % line if depth == 2 else
-                "\subsubsection{%s}\n" % line if depth == 3 else
-                "\paragraph{%s}\n"     % line if depth == 4 else
-                #"\subparagraph{%s}\n"  % line if depth == 5 else
-                "TODO\n" )
-              , None
-              )
+, "Heading"       : ( ( lambda depth, line : 
+                        "\section{%s}\n"       % line if depth == 1 else
+                        "\subsection{%s}\n"    % line if depth == 2 else
+                        "\subsubsection{%s}\n" % line if depth == 3 else
+                        "\paragraph{%s}\n"     % line if depth == 4 else
+                        #"\subparagraph{%s}\n"  % line if depth == 5 else
+                        "TODO\n" )
+                    , None
+                    )
 
-, Paragraph : ( ( lambda : "" )
-              , ( lambda : "\n" )
-              )
+, "Paragraph"     : ( ( lambda : "" )
+                    , ( lambda : "\n" )
+                    )
 
-, ParagraphLine : ( lambda line : "%s\n" % line )
+, "ParagraphLine" : ( lambda line : "%s\n" % line )
 }
 
 
 class OrgPy :
     def __init__( self, filename, configuration = ORG_MODE ) :
         
-        if not os.path.exists( filename ) :
-            assert( 0 )
         
         self._filename = filename;
         self._content = OrgModeContent( None )
         self._file = []
         
-        orgfile = open( filename, "r" )    
-        
-        
+        if isinstance( filename, basestring ) :
+            if not os.path.exists( filename ) :
+                assert( 0 )
+            orgfile = open( filename, "r" )
+
+        elif isinstance( filename, io.StringIO ) :
+            orgfile = filename
+
+        else :
+            assert( 0 )
         
         ignore   = re.compile( "[\n]" )
         suppress = re.compile( "\*\*" )
@@ -412,22 +420,22 @@ class OrgPy :
             h = Heading.regex.findall( line )
             if len( h ) > 0 :
                 depth = len(h[0])-2
-                printf( "%{magenta:%s%}\n", depth )
+                printf( "%{magenta:%s%}\n", depth, stream = log_file )
                 line = line[ depth+2 : ]
                                 
                 section = Heading( line, depth )
                 
-                printf( "%{red:%s, \n%s%}\n", section, stack )
+                printf( "%{red:%s, \n%s%}\n", section, stack, stream = log_file )
                 
                 
                 if isinstance( stack[-1], Heading ) :
                     if depth > stack[-1]._depth :
-                        printf( "%{Green:>>%}\n" )
+                        printf( "%{Green:>>%}\n", stream = log_file )
                         stack[-1].append( section )
                         stack.append( section )
                         
                     elif depth < stack[-1]._depth :
-                        printf( "%{Green:<<%}" )
+                        printf( "%{Green:<<%}", stream = log_file )
                         stack.pop()
                         
                         while True :
@@ -443,13 +451,13 @@ class OrgPy :
                         stack.append( section )
                         
                     else :
-                        printf( "%{Green:==%}\n" )
+                        printf( "%{Green:==%}\n", stream = log_file )
                         stack.pop()
                         stack[-1].append( section )
                         stack.append( section )
                         
                 else :
-                    printf( "%{Green:append%}\n" )
+                    printf( "%{Green:append%}\n", stream = log_file )
                     stack[-1].append( section )
                     stack.append( section )                        
                 continue
@@ -461,7 +469,7 @@ class OrgPy :
             
             for i in Option.regex.finditer( line ) :
                 stack[-1].append( Option( line ) )
-                printf( "%{cyan:%s -> %s%}\n", line, i.span() )
+                printf( "%{cyan:%s -> %s%}\n", line, i.span(), stream = log_file )
                 text = False
                 break
             
@@ -482,8 +490,10 @@ class OrgPy :
                         stack[-1].append( e[0]() )
                     
                     stack[-1].peek().append( e[1]( line ) )
-                    printf( "%{yellow:%s%}\n", i.span() )
-                    printf( "%{Yellow:%s%}\n", line[ i.span()[0] : i.span()[1] ].split("|") )
+                    printf( "%{yellow:%s%}\n", i.span(), stream = log_file )
+                    printf( "%{Yellow:%s%}\n"
+                          , line[ i.span()[0] : i.span()[1] ].split("|")
+                          , stream = log_file )
                     
                 if not text :
                     break 
@@ -495,7 +505,8 @@ class OrgPy :
                 sep = sep + line.count( "\t" )
                 sep = sep + line.count( "\n" )
                 
-                printf( "%{Blue:%s %{red,bold:%s%}%} -> %s\n", line, text, sep )
+                printf( "%{Blue:%s %{red,bold:%s%}%} -> %s\n"
+                      , line, text, sep, stream = log_file )
                 
                 last = stack[-1].peek()
                 
@@ -512,14 +523,14 @@ class OrgPy :
                     and isinstance( last, Paragraph ) :
                         stack[-1].append( Paragraph() )
             
-            #printf( "%-50s%-3i: h=%s\n", line, cnt, h )
+            #printf( "%-50s%-3i: h=%s\n", line, cnt, h, stream = log_file )
             cnt = cnt + 1
         
         
     # end def
     
     def dump( self, stream = sys.stderr ) :
-        printf( "%s\n", len( self._file ) )
+        printf( "%s\n", len( self._file ), stream = log_file )
         self._content.dump( stream )
     # end def
     
