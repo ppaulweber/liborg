@@ -186,10 +186,11 @@ class Heading( OrgModeContent ) :
 #==============================================================================
 
 class Paragraph( OrgModeContent ) :
-    def __init__( self ) :
+    def __init__( self, count ) :
         OrgModeContent.__init__( self )
+        self._count = count
     # end def
-
+    
     def append( self, content ) :
         assert( isinstance( content, ParagraphLine ) )
         self._content.append( content )
@@ -197,12 +198,12 @@ class Paragraph( OrgModeContent ) :
     
     def generate_pre( self, stream, emit ) :
         if emit[ 0 ] is not None:
-            stream.write( unicode( emit[ 0 ]() ) )
+            stream.write( unicode( emit[ 0 ]( self._count ) ) )
     # end def
-
+    
     def generate_post( self, stream, emit ) :
         if emit[ 1 ] is not None:
-            stream.write( unicode( emit[ 1 ]() ) )
+            stream.write( unicode( emit[ 1 ]( self._count ) ) )
     # end def
     
 # end class
@@ -359,8 +360,8 @@ HTML = \
                     , None
                     )
 
-, "Paragraph"     : ( ( lambda : "<div>\n" )
-                    , ( lambda : "</div>\n" )
+, "Paragraph"     : ( ( lambda cnt : "<div>\n" )
+                    , ( lambda cnt : "</div>\n" )
                     )
 
 , "ParagraphLine" : ( lambda line : "%s\n" % line )
@@ -379,8 +380,8 @@ LATEX = \
                     , None
                     )
 
-, "Paragraph"     : ( ( lambda : "" )
-                    , ( lambda : "\n" )
+, "Paragraph"     : ( ( lambda cnt : "" )
+                    , ( lambda cnt : "\n" )
                     )
 
 , "ParagraphLine" : ( lambda line : "%s\n" % line )
@@ -412,6 +413,8 @@ class OrgPy :
         stack = [ self._content ]
         
         cnt = 0
+        par_cnt = 0
+        
         for line in orgfile.readlines() :
             self._file.append( line )
             
@@ -513,7 +516,8 @@ class OrgPy :
                 if len( line ) > 0 :
                     # text found                
                     if last is None or not isinstance( last, Paragraph ) :
-                        stack[-1].append( Paragraph() )
+                        par_cnt = 0
+                        stack[-1].append( Paragraph( par_cnt ) )
                     
                     stack[-1].peek().append( ParagraphLine( line ) )
 
@@ -521,8 +525,9 @@ class OrgPy :
                     if  sep == len( line ) \
                     and last is not None \
                     and isinstance( last, Paragraph ) :
-                        stack[-1].append( Paragraph() )
-            
+                        par_cnt = par_cnt + 1
+                        stack[-1].append( Paragraph( par_cnt ) )
+           
             #printf( "%-50s%-3i: h=%s\n", line, cnt, h, stream = log_file )
             cnt = cnt + 1
         
