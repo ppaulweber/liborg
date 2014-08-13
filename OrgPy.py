@@ -17,7 +17,7 @@ from Verbose import *
 
 
 log_file = None
-#log_file = io.open( ".attic/log", "w" )
+log_file = sys.stderr
 
 #==============================================================================
 # ORG-MODE STYLES
@@ -117,7 +117,7 @@ class OrgModeContent( object ) :
         for i in range( indent ) :
             ind = "%s " % ind
         
-        printf( "%s%s\n", ind, self, stream = log_file ) 
+        printf( "%s%s\n", ind, self, stream = stream ) 
         
         for c in self._content :
             c.dump( stream, indent+1 )
@@ -144,6 +144,37 @@ class OrgModeContent( object ) :
     def generate_post( self, stream, emit ) :
         pass
     # end def
+    
+# end class
+
+
+#==============================================================================
+# TITLE
+#==============================================================================
+
+class Title( OrgModeContent ) :
+    #regex = re.compile( "^\*+ " )
+    
+    def __init__( self, line ) :
+        OrgModeContent.__init__( self, line )
+    # end def
+    
+    def __str__( self ) :
+        return transform( "%{black,White:%s:%} %s %{yellow:%s%}") % \
+            ( OrgModeContent.__str__( self )
+            , self._line
+            , self._styles )
+    # end def
+    
+    # def generate_pre( self, stream, emit ) :
+    #     if emit[ 0 ] is not None:
+    #         stream.write( unicode( emit[ 0 ]( self._depth + 1, self._line ) ) )
+    # # end def
+
+    # def generate_post( self, stream, emit ) :
+    #     if emit[ 1 ] is not None:
+    #         stream.write( unicode( emit[ 1 ]( self._depth + 1, self._line ) ) )
+    # # end def
     
 # end class
 
@@ -195,14 +226,22 @@ class Paragraph( OrgModeContent ) :
         assert( isinstance( content, ParagraphLine ) )
         self._content.append( content )
     # end def
+
+    def __str__( self ) :
+        return transform( "%s %i" ) % \
+            ( OrgModeContent.__str__( self )
+            , self._count )
+    # end def
     
     def generate_pre( self, stream, emit ) :
-        if emit[ 0 ] is not None:
+        if  len( self._content ) > 0 \
+        and emit[ 0 ] is not None :
             stream.write( unicode( emit[ 0 ]( self._count ) ) )
     # end def
     
     def generate_post( self, stream, emit ) :
-        if emit[ 1 ] is not None:
+        if  len( self._content ) > 0 \
+        and emit[ 1 ] is not None :
             stream.write( unicode( emit[ 1 ]( self._count ) ) )
     # end def
     
@@ -391,10 +430,12 @@ LATEX = \
 class OrgPy :
     def __init__( self, filename, configuration = ORG_MODE ) :
         
-        
         self._filename = filename;
         self._content = OrgModeContent( None )
         self._file = []
+
+        self._title = None
+        self._toc   = None
         
         if isinstance( filename, basestring ) :
             if not os.path.exists( filename ) :
@@ -514,19 +555,30 @@ class OrgPy :
                 last = stack[-1].peek()
                 
                 if len( line ) > 0 :
-                    # text found                
-                    if last is None or not isinstance( last, Paragraph ) :
-                        par_cnt = 0
-                        stack[-1].append( Paragraph( par_cnt ) )
+                    if last is None and len( stack ) == 1 :
+                        # title found
+                        self._title = Title( line )
+                        stack[-1].append( self._title )
+                        
+                    else :
+                        # text found
+                        if last is None or not isinstance( last, Paragraph ) :
+                            par_cnt = 0
+                            stack[-1].append( Paragraph( par_cnt ) )
                     
-                    stack[-1].peek().append( ParagraphLine( line ) )
-
+                        stack[-1].peek().append( ParagraphLine( line ) )
+                
                 else :
-                    if  sep == len( line ) \
-                    and last is not None \
-                    and isinstance( last, Paragraph ) :
-                        par_cnt = par_cnt + 1
-                        stack[-1].append( Paragraph( par_cnt ) )
+                    if last is None and len( stack ) == 1 :
+                        # title found
+                        pass
+                    else :
+                        if  sep == len( line ) \
+                        and last is not None \
+                        and isinstance( last, Paragraph ) \
+                        and len( last._content ) > 0 :
+                            par_cnt = par_cnt + 1
+                            stack[-1].append( Paragraph( par_cnt ) )
            
             #printf( "%-50s%-3i: h=%s\n", line, cnt, h, stream = log_file )
             cnt = cnt + 1
@@ -535,7 +587,7 @@ class OrgPy :
     # end def
     
     def dump( self, stream = sys.stderr ) :
-        printf( "%s\n", len( self._file ), stream = log_file )
+        printf( "%s\n", len( self._file ), stream = stream )
         self._content.dump( stream )
     # end def
     
