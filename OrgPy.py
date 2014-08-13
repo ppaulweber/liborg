@@ -166,16 +166,11 @@ class Title( OrgModeContent ) :
             , self._styles )
     # end def
     
-    # def generate_pre( self, stream, emit ) :
-    #     if emit[ 0 ] is not None:
-    #         stream.write( unicode( emit[ 0 ]( self._depth + 1, self._line ) ) )
-    # # end def
+    def generate_pre( self, stream, emit ) :
+        if emit is not None:
+            stream.write( unicode( emit( self._line ) ) )
+    # end def
 
-    # def generate_post( self, stream, emit ) :
-    #     if emit[ 1 ] is not None:
-    #         stream.write( unicode( emit[ 1 ]( self._depth + 1, self._line ) ) )
-    # # end def
-    
 # end class
 
 
@@ -393,8 +388,11 @@ class Block( Option ) :
 HTML = \
 { "comment"       : ( lambda text : "<!-- %s -->\n" % text )
 
+, "Title"         : ( lambda text : "<h1>%s</h1>\n" % text )
+
 , "Heading"       : ( ( lambda depth, line : 
-                        "<h%s>%s</h%s>\n" % (depth, line, depth) if depth <= 4 else 
+                        "<h%s>%s</h%s>\n" % (depth+1, line, depth+1,) \
+                            if depth <= 4 else 
                         "<br><div><b>%s</b></div>\n" % line )
                     , None
                     )
