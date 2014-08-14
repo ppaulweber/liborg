@@ -340,6 +340,14 @@ class Option( OrgModeContent ) :
     def __init__( self, line ) :
         OrgModeContent.__init__( self, line )
     # end def
+
+    def __str__( self ) :
+        return transform( "%{cyan:%s%} %s" ) % \
+            ( OrgModeContent.__str__( self )
+            , self._line )
+    # end def
+
+
 # end class
 
 class Mark( Option ) :
@@ -510,9 +518,21 @@ class OrgPy :
             
             
             for i in Option.regex.finditer( line ) :
-                stack[-1].append( Option( line ) )
                 printf( "%{cyan:%s -> %s%}\n", line, i.span(), stream = log_file )
+                stack[-1].append( Option( line ) )
                 text = False
+                
+                line = line[ (i.span()[1]+1) : ]
+                for j in Mark.regex.finditer( line ) :
+                    printf( "%{Cyan:%s -> %s%}\n", line, j.span(), stream = log_file )
+                    mark = line[ j.span()[0] : j.span()[1] ]
+                    line = line[ (j.span()[1]+1) : ]
+
+                    if mark == "title:" :
+                        self._title = Title( line )
+                    
+                    break
+                    
                 break
             
             if not text :
@@ -553,7 +573,9 @@ class OrgPy :
                 last = stack[-1].peek()
                 
                 if len( line ) > 0 :
-                    if last is None and len( stack ) == 1 :
+                    if  last is None \
+                    and len( stack ) == 1 \
+                    and self._title is None :
                         # title found
                         self._title = Title( line )
                         stack[-1].append( self._title )
@@ -567,7 +589,9 @@ class OrgPy :
                         stack[-1].peek().append( ParagraphLine( line ) )
                 
                 else :
-                    if last is None and len( stack ) == 1 :
+                    if  last is None \
+                    and len( stack ) == 1 \
+                    and self._title is None :
                         # title found
                         pass
                     else :
