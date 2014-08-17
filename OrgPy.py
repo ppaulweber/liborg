@@ -10,6 +10,7 @@ import sys
 import os
 import re
 import io
+import datetime
 
 sys.path.append( "../verbose/python" )
 
@@ -439,18 +440,25 @@ class OrgPy :
         self._filename = filename;
         self._content = OrgModeContent( None )
         self._file = []
-
-        self._title = None
-        self._toc   = None
         
+        self._option = \
+        { "title" : None
+        , "help"  : ""
+        }
+        
+        self._toc  = None
+        
+        is_file = False
+
         if isinstance( filename, basestring ) :
             if not os.path.exists( filename ) :
                 assert( 0 )
             orgfile = open( filename, "r" )
-
+            is_file = True
+            
         elif isinstance( filename, io.StringIO ) :
             orgfile = filename
-
+        
         else :
             assert( 0 )
         
@@ -527,12 +535,18 @@ class OrgPy :
                     printf( "%{Cyan:%s -> %s%}\n", line, j.span(), stream = log_file )
                     mark = line[ j.span()[0] : j.span()[1] ]
                     line = line[ (j.span()[1]+1) : ]
-
-                    if mark == "title:" :
-                        self._title = Title( line )
+                    
+                    mark = mark[:-1]
+                    
+                    if mark == "title" :
+                        self._option[ mark ] = Title( line )
+                        printf( "setting new title '%s'\n" % line, stream = log_file )
+                    
+                    if mark == "help" :
+                        self._option[ mark ] = line
+                        printf( "setting new help '%s'\n" % line, stream = log_file )
                     
                     break
-                    
                 break
             
             if not text :
@@ -572,13 +586,15 @@ class OrgPy :
                 
                 last = stack[-1].peek()
                 
+                title = self._option[ "title" ]
+                
                 if len( line ) > 0 :
                     if  last is None \
                     and len( stack ) == 1 \
-                    and self._title is None :
+                    and title is None :
                         # title found
-                        self._title = Title( line )
-                        stack[-1].append( self._title )
+                        title = Title( line )
+                        stack[-1].append( title )
                         
                     else :
                         # text found
@@ -591,7 +607,7 @@ class OrgPy :
                 else :
                     if  last is None \
                     and len( stack ) == 1 \
-                    and self._title is None :
+                    and title is None :
                         # title found
                         pass
                     else :
@@ -605,7 +621,9 @@ class OrgPy :
             #printf( "%-50s%-3i: h=%s\n", line, cnt, h, stream = log_file )
             cnt = cnt + 1
         
-        
+
+        if is_file :
+            orgfile.close()
     # end def
     
     def dump( self, stream = sys.stderr ) :
@@ -619,9 +637,9 @@ class OrgPy :
         or emit[ "comment" ] is None :
             emit[ "comment" ] = ( lambda text : "" )
         
-        from datetime import datetime
         
-        stream.write( unicode( emit[ "comment" ]( str( datetime.utcnow() ) ) ) )
+        stream.write( unicode( emit[ "comment" ]( 
+                    str( datetime.datetime.utcnow() ) ) ) )
         
         
         self._content.generate( stream, emit )
