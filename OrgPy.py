@@ -24,34 +24,81 @@ log_file = sys.stderr
 # ORG-MODE STYLES
 #==============================================================================
 
-class OrgModeStyle( object ) :
+class OrgModeSyntax( object ) :
     prefix  = None
     postfix = None
     
     def __init__( self, prefix, postfix = None ) :
         
-        if postfix is None :
-            postfix = prefix
-        
         if prefix is None \
         or len( prefix ) == 0 :
             assert( 0 )
+        self.prefix  = re.compile( prefix  )
         
-        if postfix is None \
-        or len( postfix ) == 0 :
-            assert( 0 )
+        if  postfix is not None \
+        and len( postfix ) != 0 :
+            self.postfix = re.compile( postfix )
         
-        self.prefix  = prefix
-        self.postfix = postfix
+    # end def
+# end class
+
+class OrgModeStyle( object ) :
+
+    def __init__( self, position, end_of_style = False ) :
+        self._pos = position
+        self._end = end_of_style
+    # end def
+    
+    def __cmp__( self, other ) :
+        assert( isinstance( other, OrgModeStyle ) )
+        
+        return self._pos[0].__cmp__( other._pos[0] )
+    
+    _memory = None
+    
+    @staticmethod
+    def fetch( config, line ) :
+        
+        result = []
+        
+        if OrgModeStyle._memory is None :
+            OrgModeStyle._memory = {}
+            for style in config.keys() :
+                OrgModeStyle._memory[ style ] = False
+        
+        mem = OrgModeStyle._memory
+        
+        for style, syntax in config.iteritems() :
+            offset = 0
+            cursor = syntax.prefix
+            
+            if  syntax.postfix is not None \
+            and mem[ style ] is not None :
+                cursor = syntax.postfix
+            
+            for i in cursor.finditer( line[ offset : ] ) :
+                #printf( "%{green:%s%} %s: %s\n"
+                #      , i.span(), mem[style], style, stream = log_file )
+                
+                offset = i.span()[1]
+                
+                result.append( style( i.span(), mem[style] ) )
+                
+                if mem[ style ] :
+                    cursor = syntax.prefix
+                else :
+                    cursor = syntax.postfix
+                
+                mem[ style ] = not mem[ style ]
+        
+        return sorted( result )
     # end def
 # end class
 
 class Italic( OrgModeStyle ) : pass
-#    regex = re.compile( "/\S+/" )
-#end class
+# end class
 
 class Bold( OrgModeStyle ) : pass
-#    regex = re.compile( "\*\S+\*" )
 # end class
 
 class Link( OrgModeStyle ) : pass
@@ -60,10 +107,18 @@ class Link( OrgModeStyle ) : pass
 
 
 ORG_MODE = \
-[ Bold( "*" )
-, Italic( "/" )
-, Link( "s" )
-]
+{ Bold   : OrgModeSyntax( "[*]", "[*]" )
+, Italic : OrgModeSyntax( "[/]", "[/]" )
+, Link   : OrgModeSyntax( "http://\S*" )
+}
+
+#[ Bold( "[\*]" )
+#, Italic( "[/]" )
+#, Link( "[&]" )
+#]
+
+# Bold(  )
+
 
 
 
@@ -73,19 +128,20 @@ ORG_MODE = \
 
 class OrgModeContent( object ) :
     
-   # _style = [ Italic ] #, Bold, Link ]
-    
     def __init__( self, line = None ) :
         self._line    = line
         self._styles = []
         self._content = []
         
         if line is not None :
-            pass
-            # for e in OrgModeContent._style :
-            #     for i in e.regex.finditer( line ) :
-            #         printf( "%{green:%s%}\n", i.span(), stream = log_file )
-            #         self._styles.append( e() )
+            self._styles = OrgModeStyle.fetch( ORG_MODE, line )
+            
+            for s in self._styles :
+                #printf( "%s\n", s, stream = log_file )
+                printf( "%{green:%s%} %s: %s\n"
+                      , s._pos, s._end, s, stream = log_file )
+                
+                
     # end def
     
     def __str__( self ) :
@@ -268,7 +324,7 @@ class ParagraphLine( OrgModeContent ) :
 #==============================================================================
 
 class Table( OrgModeContent ) :
-    regex = re.compile( "\|-*-\||\|.*\|" )
+    regex = re.compile( "(\|-\s-\|)|(\|\s\|)" )
     
     def __init__( self ) :
         OrgModeContent.__init__( self )
@@ -475,6 +531,7 @@ class OrgPy :
             
             line = ignore.sub( "", line )
             
+            # check for a heading
             h = Heading.regex.findall( line )
             if len( h ) > 0 :
                 depth = len(h[0])-2
@@ -570,6 +627,7 @@ class OrgPy :
                     printf( "%{Yellow:%s%}\n"
                           , line[ i.span()[0] : i.span()[1] ].split("|")
                           , stream = log_file )
+                    printf( "%s\n", e )
                     
                 if not text :
                     break 
