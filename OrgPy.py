@@ -51,13 +51,16 @@ class OrgModeStyle( object ) :
     
     def generate( self, emit, line ) :
         result = line
+        text = line[ self._pos[0] : self._pos[1] ]
+        
+        printf( "%{Yellow:%s%}\n", text, stream = log_file )
         
         if self._end is False :
             # starting style
             if emit[ 0 ] is not None :
                 result = "%s%s%s" % \
                 ( line[ 0 : self._pos[0] ]
-                , emit[ 0 ]( "" )
+                , emit[ 0 ]( text )
                 , line[ self._pos[1] : ] 
                 )
         
@@ -66,15 +69,16 @@ class OrgModeStyle( object ) :
             if emit[ 1 ] is not None :
                 result = "%s%s%s" % \
                 ( line[ 0 : self._pos[0] ]
-                , emit[ 1 ]( "" )
+                , emit[ 1 ]( text )
                 , line[ self._pos[1] : ] 
                 )
         
         return result
     # end def
-        
+    
     def __repr__( self ) :
-        return "%s @ %s:%s" % ( self.__class__.__name__, self._pos, self._end )
+        return "%s @ %s: %s" % \
+            ( self.__class__.__name__, self._pos, self._end )
     # end def
 
     def __cmp__( self, other ) :
@@ -91,8 +95,9 @@ class OrgModeStyle( object ) :
         
         if OrgModeStyle._memory is None :
             OrgModeStyle._memory = {}
-            for style in config.keys() :
-                OrgModeStyle._memory[ style ] = False
+        
+        for style in config.keys() :
+            OrgModeStyle._memory[ style ] = False
         
         mem = OrgModeStyle._memory
         
@@ -140,27 +145,32 @@ class OrgModeStyle( object ) :
                 
                     mem[ style ] = not mem[ style ]
         
-        return sorted( result, reverse = True )
+        result = sorted( result, reverse = True )
+        
+        for style in config.keys() :
+            if OrgModeStyle._memory[ style ] is True :
+                for r in result :
+                    if  r.__class__.__name__ == style.__name__ \
+                    and r._end is False :
+                        result.remove( r )
+                        break
+        
+        return result
     # end def
 # end class
 
 class Italic( OrgModeStyle ) : pass
-# end class
-
 class Bold( OrgModeStyle ) : pass
-# end class
-
 class Link( OrgModeStyle ) : pass
-#    regex = re.compile( "(http://\S*)|(https://\S*)|(file://\S*)|(ftp://\S*)")
-# end class
+class NamedLink( OrgModeStyle ) : pass
 
 
 ORG_MODE = \
-{ Bold   : OrgModeSyntax( "\*", "\*" ) #"[^\*]\*[^\*]", "[^\*]\*[^\*]" )
-, Italic : OrgModeSyntax( "/", "/" )
-, Link   : OrgModeSyntax( "http://\S*" )
+{ Bold        : OrgModeSyntax( " \*\S", "\S\* " )
+, Italic      : OrgModeSyntax( " /\S", "\S/ " )
+, Link        : OrgModeSyntax( "( |^\[)(http://\S*)" )
+, NamedLink   : OrgModeSyntax( "\[\[http://\S*\]\[\S+\]\]" )
 }
-
 
 #==============================================================================
 # ORG-MODE CONTENT
@@ -523,8 +533,16 @@ HTML = \
                     , ( lambda text : "</i>" )
                     )
 
-, "Link"          : ( ( lambda text : "<b>" )
-                    , ( lambda text : "<b>" )
+, "Link"          : ( ( lambda text : ' <a href="%s">%s</a>' % ( text[1:], text[1:],) )
+                    , None
+                    )
+
+, "NamedLink"     : ( ( lambda text : '<a href="%s">%s</a>' % \
+                        ( re.search( "(?<=\[\[).*?(?=\]\[)" , text ).group(0)
+                        , re.search( "(?<=\]\[).*?(?=\]\])" , text ).group(0)
+                        ) 
+                      )
+                    , None
                     )
 }
 
