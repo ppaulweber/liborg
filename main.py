@@ -30,7 +30,7 @@ if __name__ == "__main__" :
     
     with io.open( file_name + ".html" , "w" ) as fd:
         orgpy.generate( fd )
-#        orgpy.generate( sys.stdout )
+        orgpy.generate( sys.stdout )
         
     with io.open( file_name + ".tex" , "w" ) as fd:
         orgpy.generate( fd, emit=LATEX )

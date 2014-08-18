@@ -35,10 +35,10 @@ class OrgModeSyntax( object ) :
             assert( 0 )
         self.prefix  = re.compile( prefix  )
         
-        if  postfix is not None \
-        and len( postfix ) != 0 :
+        if  postfix is not None :
+            if len( postfix ) == 0 :
+                assert( 0 )
             self.postfix = re.compile( postfix )
-        
     # end def
 # end class
 
@@ -49,6 +49,34 @@ class OrgModeStyle( object ) :
         self._end = end_of_style
     # end def
     
+    def generate( self, emit, line ) :
+        result = line
+        
+        if self._end is False :
+            # starting style
+            if emit[ 0 ] is not None :
+                result = "%s%s%s" % \
+                ( line[ 0 : self._pos[0] ]
+                , emit[ 0 ]( "" )
+                , line[ self._pos[1] : ] 
+                )
+        
+        else :
+            # stopping style
+            if emit[ 1 ] is not None :
+                result = "%s%s%s" % \
+                ( line[ 0 : self._pos[0] ]
+                , emit[ 1 ]( "" )
+                , line[ self._pos[1] : ] 
+                )
+        
+        return result
+    # end def
+        
+    def __repr__( self ) :
+        return "%s @ %s:%s" % ( self.__class__.__name__, self._pos, self._end )
+    # end def
+
     def __cmp__( self, other ) :
         assert( isinstance( other, OrgModeStyle ) )
         
@@ -68,30 +96,51 @@ class OrgModeStyle( object ) :
         
         mem = OrgModeStyle._memory
         
+        for i in range( len( line ) ) :
+            printf( "%s", i / 10, stream = log_file )
+        printf( "\n", stream = log_file )
+        for i in range( len( line ) ) :
+            printf( "%s", i % 10, stream = log_file )
+        printf( "\n", stream = log_file )
+            
         for style, syntax in config.iteritems() :
             offset = 0
             cursor = syntax.prefix
             
             if  syntax.postfix is not None \
-            and mem[ style ] is not None :
+            and mem[ style ] is not None \
+            and mem[ style ] is True :
                 cursor = syntax.postfix
             
-            for i in cursor.finditer( line[ offset : ] ) :
-                #printf( "%{green:%s%} %s: %s\n"
-                #      , i.span(), mem[style], style, stream = log_file )
+            while True :
+                i = cursor.search( line[ offset : ] )
                 
-                offset = i.span()[1]
+                if i is None :
+                    break
                 
-                result.append( style( i.span(), mem[style] ) )
+                pos = \
+                ( i.span()[0] + offset
+                , i.span()[1] + offset
+                )
                 
-                if mem[ style ] :
-                    cursor = syntax.prefix
-                else :
-                    cursor = syntax.postfix
+                printf( "%{green:%s%} %s: %s [ %s ]\n"
+                     , pos
+                     , mem[style]
+                     , style, cursor, stream = log_file )
                 
-                mem[ style ] = not mem[ style ]
+                offset = pos[1]
+                
+                result.append( style( pos, mem[style] ) )
+                
+                if syntax.postfix is not None :
+                    if mem[ style ] :
+                        cursor = syntax.prefix
+                    else :
+                        cursor = syntax.postfix
+                
+                    mem[ style ] = not mem[ style ]
         
-        return sorted( result )
+        return sorted( result, reverse = True )
     # end def
 # end class
 
@@ -107,19 +156,10 @@ class Link( OrgModeStyle ) : pass
 
 
 ORG_MODE = \
-{ Bold   : OrgModeSyntax( "[*]", "[*]" )
-, Italic : OrgModeSyntax( "[/]", "[/]" )
+{ Bold   : OrgModeSyntax( "\*", "\*" ) #"[^\*]\*[^\*]", "[^\*]\*[^\*]" )
+, Italic : OrgModeSyntax( "/", "/" )
 , Link   : OrgModeSyntax( "http://\S*" )
 }
-
-#[ Bold( "[\*]" )
-#, Italic( "[/]" )
-#, Link( "[&]" )
-#]
-
-# Bold(  )
-
-
 
 
 #==============================================================================
@@ -137,11 +177,8 @@ class OrgModeContent( object ) :
             self._styles = OrgModeStyle.fetch( ORG_MODE, line )
             
             for s in self._styles :
-                #printf( "%s\n", s, stream = log_file )
                 printf( "%{green:%s%} %s: %s\n"
                       , s._pos, s._end, s, stream = log_file )
-                
-                
     # end def
     
     def __str__( self ) :
@@ -182,23 +219,33 @@ class OrgModeContent( object ) :
 
     def generate( self, stream, emit ) :
         
-        # process line or field!
+        line = "%s" % self._line
+        
+        for style in self._styles :
+            if style.__class__.__name__ in emit :
+                printf( "%{Red:%s%}\n", style, stream = log_file )
+                line = style.generate( emit[ style.__class__.__name__ ]
+                                     , line )
         
         if self.__class__.__name__ in emit :
-            self.generate_pre( stream, emit[ self.__class__.__name__ ] )
+            self.generate_pre( stream
+                             , emit[ self.__class__.__name__ ]
+                             , line )
         
-        for c in self._content :
-            c.generate( stream, emit )
+        for content in self._content :
+            content.generate( stream, emit )
 
         if self.__class__.__name__ in emit :
-            self.generate_post( stream, emit[ self.__class__.__name__ ] )
+            self.generate_post( stream
+                              , emit[ self.__class__.__name__ ]
+                              , line )
     # end def
     
-    def generate_pre( self, stream, emit ) :
+    def generate_pre( self, stream, emit, line ) :
         pass
     # end def
     
-    def generate_post( self, stream, emit ) :
+    def generate_post( self, stream, emit, line ) :
         pass
     # end def
     
@@ -223,9 +270,9 @@ class Title( OrgModeContent ) :
             , self._styles )
     # end def
     
-    def generate_pre( self, stream, emit ) :
+    def generate_pre( self, stream, emit, line ) :
         if emit is not None:
-            stream.write( unicode( emit( self._line ) ) )
+            stream.write( unicode( emit( line ) ) )
     # end def
 
 # end class
@@ -251,14 +298,14 @@ class Heading( OrgModeContent ) :
             , self._styles )
     # end def
     
-    def generate_pre( self, stream, emit ) :
+    def generate_pre( self, stream, emit, line ) :
         if emit[ 0 ] is not None:
-            stream.write( unicode( emit[ 0 ]( self._depth + 1, self._line ) ) )
+            stream.write( unicode( emit[ 0 ]( self._depth + 1, line ) ) )
     # end def
 
-    def generate_post( self, stream, emit ) :
+    def generate_post( self, stream, emit, line ) :
         if emit[ 1 ] is not None:
-            stream.write( unicode( emit[ 1 ]( self._depth + 1, self._line ) ) )
+            stream.write( unicode( emit[ 1 ]( self._depth + 1, line ) ) )
     # end def
     
 # end class
@@ -285,13 +332,13 @@ class Paragraph( OrgModeContent ) :
             , self._count )
     # end def
     
-    def generate_pre( self, stream, emit ) :
+    def generate_pre( self, stream, emit, line ) :
         if  len( self._content ) > 0 \
         and emit[ 0 ] is not None :
             stream.write( unicode( emit[ 0 ]( self._count ) ) )
     # end def
     
-    def generate_post( self, stream, emit ) :
+    def generate_post( self, stream, emit, line ) :
         if  len( self._content ) > 0 \
         and emit[ 1 ] is not None :
             stream.write( unicode( emit[ 1 ]( self._count ) ) )
@@ -311,9 +358,9 @@ class ParagraphLine( OrgModeContent ) :
             , self._styles )
     # end def
 
-    def generate_pre( self, stream, emit ) :
+    def generate_pre( self, stream, emit, line ) :
         if emit is not None:
-            stream.write( unicode( emit( self._line ) ) )
+            stream.write( unicode( emit( line ) ) )
     # end def
 
 # end class
@@ -467,6 +514,18 @@ HTML = \
                     )
 
 , "ParagraphLine" : ( lambda line : "%s\n" % line )
+
+, "Bold"          : ( ( lambda text : "<b>" )
+                    , ( lambda text : "</b>" )
+                    )
+
+, "Italic"        : ( ( lambda text : "<i>" )
+                    , ( lambda text : "</i>" )
+                    )
+
+, "Link"          : ( ( lambda text : "<b>" )
+                    , ( lambda text : "<b>" )
+                    )
 }
 
 LATEX = \
@@ -651,7 +710,8 @@ class OrgPy :
                     and len( stack ) == 1 \
                     and title is None :
                         # title found
-                        title = Title( line )
+                        self._option[ "title" ] = Title( line )
+                        title = self._option[ "title" ]
                         stack[-1].append( title )
                         
                     else :
