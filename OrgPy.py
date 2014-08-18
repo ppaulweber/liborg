@@ -163,13 +163,14 @@ class Italic( OrgModeStyle ) : pass
 class Bold( OrgModeStyle ) : pass
 class Link( OrgModeStyle ) : pass
 class NamedLink( OrgModeStyle ) : pass
-
+class Rule( OrgModeStyle ) : pass
 
 ORG_MODE = \
 { Bold        : OrgModeSyntax( "(?<= )\*(?=\S)", "(?<=\S)\*(?= )" )
 , Italic      : OrgModeSyntax( "(?<= )/(?=\S)",  "(?<=\S)/(?= )" )
 , Link        : OrgModeSyntax( "(?<!\[\[)http://\S*" )
 , NamedLink   : OrgModeSyntax( "\[\[http://\S*\]\[\S+\]\]" )
+#, Rule        : OrgModeSyntax( "-----{-}*" )
 }
 
 #==============================================================================
@@ -548,6 +549,11 @@ HTML = \
                       )
                     , None
                     )
+
+#, "Rule"          : ( ( lambda text : '<hr>' )
+#                    , None
+#                    )
+
 }
 
 LATEX = \
