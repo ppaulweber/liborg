@@ -164,6 +164,7 @@ class Bold( OrgModeStyle ) : pass
 class Link( OrgModeStyle ) : pass
 class NamedLink( OrgModeStyle ) : pass
 class Rule( OrgModeStyle ) : pass
+class Footnote( OrgModeStyle ) : pass
 
 ORG_MODE = \
 { Bold        : OrgModeSyntax( "(?<= )\*(?=\S)", "(?<=\S)\*(?= )" )
@@ -171,6 +172,7 @@ ORG_MODE = \
 , Link        : OrgModeSyntax( "(?<!\[\[)http://\S*" )
 , NamedLink   : OrgModeSyntax( "\[\[http://\S*\]\[\S+\]\]" )
 #, Rule        : OrgModeSyntax( "-----{-}*" )
+, Footnote    : OrgModeSyntax( "\[fn:\S*:\S*\]" )
 }
 
 #==============================================================================
@@ -511,6 +513,10 @@ class Block( Option ) :
 HTML = \
 { "comment"       : ( lambda text : "<!-- %s -->\n" % text )
 
+, "prolog"        : "<!-- prolog -->\n"
+
+, "epilog"        : "<!-- epilog -->\n"
+
 , "Title"         : ( lambda text : "<h1>%s</h1>\n" % text )
 
 , "Heading"       : ( ( lambda depth, line : 
@@ -553,6 +559,15 @@ HTML = \
 #, "Rule"          : ( ( lambda text : '<hr>' )
 #                    , None
 #                    )
+
+
+, "Footnote"      : ( ( lambda text : '<sup><a href="%s">%s</a></sup>' % \
+                        ( re.search( "(?<=:).*(?=:)" , text ).group(0)
+                        , re.search( ":.*?:.*?(?=\])", text ).group(0)
+                        ) 
+                      )
+                    , None
+                    )
 
 }
 
@@ -783,12 +798,18 @@ class OrgPy :
         or emit[ "comment" ] is None :
             emit[ "comment" ] = ( lambda text : "" )
         
-        
         stream.write( unicode( emit[ "comment" ]( 
                     str( datetime.datetime.utcnow() ) ) ) )
         
+        if  "prolog" in emit \
+        and emit[ "prolog" ] is not None :
+            stream.write( unicode( emit[ "prolog" ] ) )
         
         self._content.generate( stream, emit )
+        
+        if  "epilog" in emit \
+        and emit[ "epilog" ] is not None :
+            stream.write( unicode( emit[ "epilog" ] ) )
         
         #print stream
     # end def
