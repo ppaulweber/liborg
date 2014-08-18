@@ -166,9 +166,9 @@ class NamedLink( OrgModeStyle ) : pass
 
 
 ORG_MODE = \
-{ Bold        : OrgModeSyntax( " \*\S", "\S\* " )
-, Italic      : OrgModeSyntax( " /\S", "\S/ " )
-, Link        : OrgModeSyntax( "( |^\[)(http://\S*)" )
+{ Bold        : OrgModeSyntax( "(?<= )\*(?=\S)", "(?<=\S)\*(?= )" )
+, Italic      : OrgModeSyntax( "(?<= )/(?=\S)",  "(?<=\S)/(?= )" )
+, Link        : OrgModeSyntax( "(?<!\[\[)http://\S*" )
 , NamedLink   : OrgModeSyntax( "\[\[http://\S*\]\[\S+\]\]" )
 }
 
@@ -533,13 +533,17 @@ HTML = \
                     , ( lambda text : "</i>" )
                     )
 
-, "Link"          : ( ( lambda text : ' <a href="%s">%s</a>' % ( text[1:], text[1:],) )
+, "Link"          : ( ( lambda text : '<a href="%s">%s</a>' % \
+                        ( text
+                        , re.search( "(?<=://).*", text ).group(0)
+                        ) 
+                      )
                     , None
                     )
 
 , "NamedLink"     : ( ( lambda text : '<a href="%s">%s</a>' % \
-                        ( re.search( "(?<=\[\[).*?(?=\]\[)" , text ).group(0)
-                        , re.search( "(?<=\]\[).*?(?=\]\])" , text ).group(0)
+                        ( re.search( "(?<=\[\[).*(?=\]\[)" , text ).group(0)
+                        , re.search( "(?<=\]\[).*(?=\]\])" , text ).group(0)
                         ) 
                       )
                     , None
