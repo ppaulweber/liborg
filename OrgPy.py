@@ -159,8 +159,9 @@ class OrgModeStyle( object ) :
     # end def
 # end class
 
-class Italic( OrgModeStyle ) : pass
 class Bold( OrgModeStyle ) : pass
+class Italic( OrgModeStyle ) : pass
+class Code( OrgModeStyle ) : pass
 class Link( OrgModeStyle ) : pass
 class NamedLink( OrgModeStyle ) : pass
 class Rule( OrgModeStyle ) : pass
@@ -169,6 +170,7 @@ class Footnote( OrgModeStyle ) : pass
 ORG_MODE = \
 { Bold        : OrgModeSyntax( "(?<= )\*(?=\S)", "(?<=\S)\*(?= )" )
 , Italic      : OrgModeSyntax( "(?<= )/(?=\S)",  "(?<=\S)/(?= )" )
+, Code        : OrgModeSyntax( "(?<= )=(?=\S)",  "(?<=\S)=(?= )" )
 , Link        : OrgModeSyntax( "(?<!\[\[)http://\S*" )
 , NamedLink   : OrgModeSyntax( "\[\[http://\S*\]\[\S+\]\]" )
 #, Rule        : OrgModeSyntax( "-----{-}*" )
@@ -538,6 +540,10 @@ HTML = \
 
 , "Italic"        : ( ( lambda text : "<i>" )
                     , ( lambda text : "</i>" )
+                    )
+
+, "Code"          : ( ( lambda text : '<code>' )
+                    , ( lambda text : '</code>' )
                     )
 
 , "Link"          : ( ( lambda text : '<a href="%s">%s</a>' % \
