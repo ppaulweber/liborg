@@ -28,7 +28,10 @@ class OrgModeSyntax( object ) :
     prefix  = None
     postfix = None
     
-    def __init__( self, prefix, postfix = None ) :
+    def __init__( self
+                , prefix
+                , postfix = None
+                ) :
         
         if prefix is None \
         or len( prefix ) == 0 :
@@ -43,10 +46,19 @@ class OrgModeSyntax( object ) :
 # end class
 
 class OrgModeStyle( object ) :
-
-    def __init__( self, position, end_of_style = False ) :
+    
+    
+    def __init__( self
+                , position
+                , end_of_style = False
+                ) :
+        
         self._pos = position
         self._end = end_of_style
+    # end def
+    
+    def preprocess( self, text ) :
+        return text
     # end def
     
     def generate( self, emit, line ) :
@@ -61,7 +73,7 @@ class OrgModeStyle( object ) :
                 result = "%s%s%s" % \
                 ( line[ 0 : self._pos[0] ]
                 , emit[ 0 ]( text )
-                , line[ self._pos[1] : ] 
+                , line[ self._pos[1] : ]
                 )
         
         else :
@@ -70,7 +82,7 @@ class OrgModeStyle( object ) :
                 result = "%s%s%s" % \
                 ( line[ 0 : self._pos[0] ]
                 , emit[ 1 ]( text )
-                , line[ self._pos[1] : ] 
+                , line[ self._pos[1] : ]
                 )
         
         return result
@@ -80,7 +92,7 @@ class OrgModeStyle( object ) :
         return "%s @ %s: %s" % \
             ( self.__class__.__name__, self._pos, self._end )
     # end def
-
+    
     def __cmp__( self, other ) :
         assert( isinstance( other, OrgModeStyle ) )
         
@@ -159,13 +171,14 @@ class OrgModeStyle( object ) :
     # end def
 # end class
 
-class Bold( OrgModeStyle ) : pass
-class Italic( OrgModeStyle ) : pass
-class Code( OrgModeStyle ) : pass
-class Link( OrgModeStyle ) : pass
+class Bold( OrgModeStyle )      : pass
+class Italic( OrgModeStyle )    : pass
+class Code( OrgModeStyle )      : pass
+class Link( OrgModeStyle )      : pass
 class NamedLink( OrgModeStyle ) : pass
-class Rule( OrgModeStyle ) : pass
-class Footnote( OrgModeStyle ) : pass
+class Rule( OrgModeStyle )      : pass
+class Footnote( OrgModeStyle )  : pass
+class Input( OrgModeStyle )     : pass
 
 ORG_MODE = \
 { Bold        : OrgModeSyntax( "(?<= )\*(?=\S)", "(?<=\S)\*(?= )" )
@@ -175,6 +188,7 @@ ORG_MODE = \
 , NamedLink   : OrgModeSyntax( "\[\[http://\S*\]\[\S+\]\]" )
 #, Rule        : OrgModeSyntax( "-----{-}*" )
 , Footnote    : OrgModeSyntax( "\[fn:\S*:\S*\]" )
+, Input       : OrgModeSyntax( "\[input:\S*\:\S*\|\S*]" )
 }
 
 #==============================================================================
@@ -566,11 +580,18 @@ HTML = \
 #                    , None
 #                    )
 
-
 , "Footnote"      : ( ( lambda text : '<sup><a href="%s">%s</a></sup>' % \
-                        ( re.search( "(?<=:).*(?=:)" , text ).group(0)
-                        , re.search( ":.*?:.*?(?=\])", text ).group(0)
+                        ( re.search( ".*?(?=:)" ,   text[4:] ).group(0)
+                        , re.search( "(?<=:).*?(?=\])", text[4:] ).group(0)
                         ) 
+                      )
+                    , None
+                    )
+, "Input"         : ( ( lambda text : '<input type="%s" name="%s" value="%s" />' % \
+                        ( re.search( ".*?(?=:)" ,   text[7:] ).group(0)
+                        , re.search( "(?<=:).*?(?=\|)", text[7:] ).group(0)
+                        , re.search( "(?<=\|).*?(?=\])", text[7:] ).group(0)
+                        )
                       )
                     , None
                     )
