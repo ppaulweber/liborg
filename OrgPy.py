@@ -484,7 +484,7 @@ class Option( OrgModeContent ) :
 # end class
 
 class Mark( Option ) :
-    regex = re.compile( "\S*:" )
+    regex = re.compile( "(?<=#\+).*?(?=:)" )
     
     def __init__( self, line ) :
         OrgModeContent.__init__( self, line )
@@ -629,6 +629,7 @@ class OrgPy :
         self._option = \
         { "title" : None
         , "help"  : ""
+        , "user"  : {}
         }
         
         self._toc  = None
@@ -716,13 +717,13 @@ class OrgPy :
                 stack[-1].append( Option( line ) )
                 text = False
                 
-                line = line[ (i.span()[1]+1) : ]
                 for j in Mark.regex.finditer( line ) :
-                    printf( "%{Cyan:%s -> %s%}\n", line, j.span(), stream = log_file )
                     mark = line[ j.span()[0] : j.span()[1] ]
+                    
                     line = line[ (j.span()[1]+1) : ]
                     
-                    mark = mark[:-1]
+                    printf( "%{Cyan:%s -> %s%} %s\n", line, j.span(), mark, 
+                            stream = log_file )
                     
                     if mark == "title" :
                         self._option[ mark ] = Title( line )
@@ -731,6 +732,11 @@ class OrgPy :
                     if mark == "help" :
                         self._option[ mark ] = line
                         printf( "setting new help '%s'\n" % line, stream = log_file )
+                    
+                    if mark == "user" :
+                        split = line.split(":")
+                        self._option[ mark ][ split[0] ] = split[ 1:]
+                        printf( "adding new user '%s'\n" % line, stream = log_file )
                     
                     break
                 break
@@ -840,6 +846,11 @@ class OrgPy :
         
         #print stream
     # end def
-    
-        
+
+    def get_option( self, option ) :
+        if option in self._option :
+            return self._option[ option ]
+        else :
+            return None
+    # end def
 # end class
