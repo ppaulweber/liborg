@@ -197,12 +197,13 @@ ORG_MODE = \
 
 class OrgModeContent( object ) :
     
-    def __init__( self, line = None ) :
+    def __init__( self, line = None, style = True ) :
         self._line    = line
         self._styles = []
         self._content = []
         
-        if line is not None :
+        if  line is not None \
+        and style is True :
             self._styles = OrgModeStyle.fetch( ORG_MODE, line )
             
             for s in self._styles :
@@ -470,14 +471,15 @@ class ListItem( OrgModeContent ) :
 class Option( OrgModeContent ) :
     regex = re.compile( "#+" )
     
-    def __init__( self, line ) :
-        OrgModeContent.__init__( self, line )
+    def __init__( self, line = None ) :
+        OrgModeContent.__init__( self, line, False )
     # end def
 
     def __str__( self ) :
         return transform( "%{cyan:%s%} %s" ) % \
             ( OrgModeContent.__str__( self )
-            , self._line )
+            , self._line
+            )
     # end def
 
 
@@ -487,38 +489,80 @@ class Mark( Option ) :
     regex = re.compile( "(?<=#\+).*?(?=:)" )
     
     def __init__( self, line ) :
-        OrgModeContent.__init__( self, line )
+        Option.__init__( self, line )
     # end def
 # end class
 
 # #+MARK{:,_BLOCK {OPTION}}
 
 class Block( Option ) :
-    regex     = re.compile( "begin_" )
-    regex_end = re.compile( "end_" )
+    regex = re.compile( "(?<=#\+)(begin)|(end)(?=_)" )
     
-    def __init__( self, line ) :
-        OrgModeContent.__init__( self, line )
+    blocks = set()
+    
+    def __init__( self ) :
+        Option.__init__( self )
+        
+        Block.blocks.add( self.__class__ )
+    # end def
+
+    def __str__( self ) :
+        return transform( "%{cyan:%s%}" ) % \
+            ( OrgModeContent.__str__( self )
+            )
     # end def
     
     def append( self, content ) :
-        assert( isinstance( content, ListItem ) )
+        assert( isinstance( content, BlockLine ) )
         self._content.append( content )
+    # end def
+        
+    def generate_pre( self, stream, emit, line ) :
+        if emit[ 0 ] is not None :
+            stream.write( unicode( emit[ 0 ]() ) )
+    # end def
+    
+    def generate_post( self, stream, emit, line ) :
+        if emit[ 1 ] is not None :
+            stream.write( unicode( emit[ 1 ]() ) )
     # end def
 # end class
 
-# class Source( Block ) :
-#     regex = re.compile( "src" )
+class BlockLine( OrgModeContent ) :
+    def __init__( self, line ) :
+        OrgModeContent.__init__( self, line, False )
+    # end def
+        
+    def __str__( self ) :
+        return transform( "%{green:%s:%} %s" ) % \
+            ( OrgModeContent.__str__( self )
+            , self._line 
+            )
+    # end def
     
-#     def __init__( self, line ) :
-#         OrgModeContent.__init__( self, line )
-#     # end def
+    def generate_pre( self, stream, emit, line ) :
+        if emit is not None:
+            stream.write( unicode( emit( line ) ) )
+    # end def
+
+# end class
+
+class Html( Block ) :
+    regex = re.compile( "html" )
     
-#     def append( self, content ) :
-#         assert( isinstance( content, ParagraphLine ) )
-#         self._content.append( content )
-#     # end def
-# # end class
+    def __init__( self ) :
+        Block.__init__( self )
+    # end def
+# end class
+
+class Source( Block ) :
+    regex = re.compile( "src" )
+    
+    def __init__( self, language = None ) :
+        Block.__init__( self )
+    # end def
+# end class
+
 
 
 #==============================================================================
@@ -547,6 +591,16 @@ HTML = \
                     )
 
 , "ParagraphLine" : ( lambda line : "%s\n" % line )
+
+, "BlockLine"     : ( lambda line : "%s\n" % line )
+
+, "Html"          : ( ( lambda : "<!-- begin html -->\n" )
+                    , ( lambda : "<!--  end  html -->\n" )
+                    )
+
+, "Source"        : ( ( lambda : "<!-- begin src -->\n" )
+                    , ( lambda : "<!--  end  src -->\n" )
+                    )
 
 , "Bold"          : ( ( lambda text : "<b>" )
                     , ( lambda text : "</b>" )
@@ -655,11 +709,40 @@ class OrgPy :
         
         cnt = 0
         par_cnt = 0
+        block = None
         
         for line in orgfile.readlines() :
             self._file.append( line )
-            
+
             line = ignore.sub( "", line )
+            
+            if block is not None :
+                for j in Block.regex.finditer( line ) :
+                    mark = line[ j.span()[0] : j.span()[1] ]
+                
+                    line = line[ (j.span()[1]+1) : ]
+                
+                    printf( "%{red:%s -> %s%} %s\n", line, j.span(), mark, 
+                            stream = log_file )
+                    
+                    if mark == "end" :
+                        #self._option[ mark ] = Title( line )
+                        printf( "end '%s'\n" % line, stream = log_file )
+                        
+                        if line == "html" :
+                            block = None
+                            break
+
+                        if line == "src" :
+                            block = None
+                            break
+                    break
+                
+                if block is None :
+                    continue
+                
+                block.append( BlockLine( line ) )
+                continue
             
             # check for a heading
             h = Heading.regex.findall( line )
@@ -716,6 +799,7 @@ class OrgPy :
                 printf( "%{cyan:%s -> %s%}\n", line, i.span(), stream = log_file )
                 stack[-1].append( Option( line ) )
                 text = False
+                brk = False
                 
                 for j in Mark.regex.finditer( line ) :
                     mark = line[ j.span()[0] : j.span()[1] ]
@@ -728,17 +812,48 @@ class OrgPy :
                     if mark == "title" :
                         self._option[ mark ] = Title( line )
                         printf( "setting new title '%s'\n" % line, stream = log_file )
+                        brk = True
                     
                     if mark == "help" :
                         self._option[ mark ] = line
                         printf( "setting new help '%s'\n" % line, stream = log_file )
+                        brk = True
                     
                     if mark == "user" :
                         split = line.split(":")
                         self._option[ mark ][ split[0] ] = split[ 1:]
                         printf( "adding new user '%s'\n" % line, stream = log_file )
+                        brk = True
                     
                     break
+
+                if brk :
+                    break
+                
+                for j in Block.regex.finditer( line ) :
+                    mark = line[ j.span()[0] : j.span()[1] ]
+                    
+                    line = line[ (j.span()[1]+1) : ]
+                        
+                    printf( "%{Red:%s -> %s%} %s\n", line, j.span(), mark, 
+                            stream = log_file )
+                    
+                    if mark == "begin" and block is None :
+                        #self._option[ mark ] = Title( line )
+                        printf( "begin '%s'\n" % line, stream = log_file )
+                        
+                        if line == "html" :
+                            block = Html()
+                            stack[-1].append( block )
+                            break
+                        
+                        if line.startswith( "src" ) :
+                            block = Source()
+                            stack[-1].append( block )
+                            break
+                    break
+                #else :
+                #    pass
                 break
             
             if not text :
@@ -795,7 +910,7 @@ class OrgPy :
                         if last is None or not isinstance( last, Paragraph ) :
                             par_cnt = 0
                             stack[-1].append( Paragraph( par_cnt ) )
-                    
+                            
                         stack[-1].peek().append( ParagraphLine( line ) )
                 
                 else :
