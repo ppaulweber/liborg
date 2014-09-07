@@ -701,8 +701,8 @@ class OrgPy :
         
         self._option = \
         { "title" : None
-        , "help"  : ""
         , "user"  : {}
+        , "alias" : {}
         }
         
         self._toc  = None
@@ -863,15 +863,21 @@ class OrgPy :
                         printf( "setting new title '%s'\n" % line, stream = log_file )
                         break
                     
-                    if mark == "help" :
-                        self._option[ mark ] = line
-                        printf( "setting new help '%s'\n" % line, stream = log_file )
-                        break
+                    # if mark == "help" :
+                    #     self._option[ mark ] = line
+                    #     printf( "setting new help '%s'\n" % line, stream = log_file )
+                    #     break
                     
                     if mark == "user" :
                         split = line.split(":")
                         self._option[ mark ][ split[0] ] = split[ 1:]
                         printf( "adding new user '%s'\n" % line, stream = log_file )
+                        break
+                    
+                    if mark == "alias" :
+                        split = line.split(":")
+                        self._option[ mark ][ split[0] ] = split[1]
+                        printf( "adding new alias '%s'\n" % line, stream = log_file )
                         break
                     
                     self._option[ mark ] = line
