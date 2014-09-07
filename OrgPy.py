@@ -47,7 +47,6 @@ class OrgModeSyntax( object ) :
 
 class OrgModeStyle( object ) :
     
-    
     def __init__( self
                 , position
                 , end_of_style = False
@@ -57,11 +56,11 @@ class OrgModeStyle( object ) :
         self._end = end_of_style
     # end def
     
-    def preprocess( self, text ) :
+    def pipe( self, text, orgpy ) :
         return text
     # end def
     
-    def generate( self, emit, line ) :
+    def generate( self, emit, line, orgpy ) :
         result = line
         text = line[ self._pos[0] : self._pos[1] ]
         
@@ -72,7 +71,7 @@ class OrgModeStyle( object ) :
             if emit[ 0 ] is not None :
                 result = "%s%s%s" % \
                 ( line[ 0 : self._pos[0] ]
-                , emit[ 0 ]( text )
+                , emit[ 0 ]( self.pipe( text, orgpy ) )
                 , line[ self._pos[1] : ]
                 )
         
@@ -81,7 +80,7 @@ class OrgModeStyle( object ) :
             if emit[ 1 ] is not None :
                 result = "%s%s%s" % \
                 ( line[ 0 : self._pos[0] ]
-                , emit[ 1 ]( text )
+                , emit[ 1 ]( self.pipe( text, orgpy ) )
                 , line[ self._pos[1] : ]
                 )
         
@@ -179,6 +178,18 @@ class NamedLink( OrgModeStyle ) : pass
 class Rule( OrgModeStyle )      : pass
 class Footnote( OrgModeStyle )  : pass
 class Input( OrgModeStyle )     : pass
+class Data( OrgModeStyle )      : 
+    def pipe( self, text, orgpy ) :
+        text = re.search( "(?<=:).*?(?=\])", text ).group(0)
+        opt = orgpy.get_option( text )
+        if opt is None :
+            return "<<%s>>" % text
+        else :
+            return opt.lstrip()
+    # end def
+# end class
+
+    
 
 ORG_MODE = \
 { Bold        : OrgModeSyntax( "(?<= )\*(?=\S)", "(?<=\S)\*(?= )" )
@@ -188,7 +199,8 @@ ORG_MODE = \
 , NamedLink   : OrgModeSyntax( "\[\[http://\S*\]\[\S+\]\]" )
 #, Rule        : OrgModeSyntax( "-----{-}*" )
 , Footnote    : OrgModeSyntax( "\[fn:\S*:\S*\]" )
-, Input       : OrgModeSyntax( "\[input:\S*\:\S*\|\S*]" )
+, Input       : OrgModeSyntax( "\[input:\S*\:\S*\|\S*\]" )
+, Data        : OrgModeSyntax( "\[data:\S*\]" )
 }
 
 #==============================================================================
@@ -247,7 +259,7 @@ class OrgModeContent( object ) :
             c.dump( stream, indent+1 )
     # end def
 
-    def generate( self, stream, emit ) :
+    def generate( self, stream, emit, orgpy ) :
         
         line = "%s" % self._line
         
@@ -255,7 +267,9 @@ class OrgModeContent( object ) :
             if style.__class__.__name__ in emit :
                 printf( "%{Red:%s%}\n", style, stream = log_file )
                 line = style.generate( emit[ style.__class__.__name__ ]
-                                     , line )
+                                     , line
+                                     , orgpy
+                                     )
         
         if self.__class__.__name__ in emit :
             self.generate_pre( stream
@@ -263,7 +277,7 @@ class OrgModeContent( object ) :
                              , line )
         
         for content in self._content :
-            content.generate( stream, emit )
+            content.generate( stream, emit, orgpy )
 
         if self.__class__.__name__ in emit :
             self.generate_post( stream
@@ -471,14 +485,15 @@ class ListItem( OrgModeContent ) :
 class Option( OrgModeContent ) :
     regex = re.compile( "#+" )
     
-    def __init__( self, line = None ) :
-        OrgModeContent.__init__( self, line, False )
+    def __init__( self, line = None, style = False ) :
+        OrgModeContent.__init__( self, line, style )
     # end def
-
+    
     def __str__( self ) :
-        return transform( "%{cyan:%s%} %s" ) % \
+        return transform( "%{cyan:%s%} %s %{yellow:%s%}" ) % \
             ( OrgModeContent.__str__( self )
             , self._line
+            , self._styles
             )
     # end def
 
@@ -650,6 +665,10 @@ HTML = \
                     , None
                     )
 
+, "Data"          : ( ( lambda field : field )
+                    , None
+                    )
+
 }
 
 LATEX = \
@@ -801,35 +820,6 @@ class OrgPy :
                 text = False
                 brk = False
                 
-                for j in Mark.regex.finditer( line ) :
-                    mark = line[ j.span()[0] : j.span()[1] ]
-                    
-                    line = line[ (j.span()[1]+1) : ]
-                    
-                    printf( "%{Cyan:%s -> %s%} %s\n", line, j.span(), mark, 
-                            stream = log_file )
-                    
-                    if mark == "title" :
-                        self._option[ mark ] = Title( line )
-                        printf( "setting new title '%s'\n" % line, stream = log_file )
-                        brk = True
-                    
-                    if mark == "help" :
-                        self._option[ mark ] = line
-                        printf( "setting new help '%s'\n" % line, stream = log_file )
-                        brk = True
-                    
-                    if mark == "user" :
-                        split = line.split(":")
-                        self._option[ mark ][ split[0] ] = split[ 1:]
-                        printf( "adding new user '%s'\n" % line, stream = log_file )
-                        brk = True
-                    
-                    break
-
-                if brk :
-                    break
-                
                 for j in Block.regex.finditer( line ) :
                     mark = line[ j.span()[0] : j.span()[1] ]
                     
@@ -839,21 +829,57 @@ class OrgPy :
                             stream = log_file )
                     
                     if mark == "begin" and block is None :
-                        #self._option[ mark ] = Title( line )
                         printf( "begin '%s'\n" % line, stream = log_file )
                         
                         if line == "html" :
                             block = Html()
                             stack[-1].append( block )
+                            brk = True
                             break
                         
                         if line.startswith( "src" ) :
                             block = Source()
                             stack[-1].append( block )
+                            brk = True
                             break
                     break
-                #else :
-                #    pass
+                
+                if brk :
+                    break
+                
+                for j in Mark.regex.finditer( line ) :
+                    mark = line[ j.span()[0] : j.span()[1] ]
+                    
+                    line = line[ (j.span()[1]+1) : ]
+                    
+                    printf( "%{Cyan:%s -> %s%} %s\n", line, j.span(), mark, 
+                            stream = log_file )
+                    
+                    if mark == "title" :
+                        stack[-1].pop()
+                        stack[-1].append( Option( line, True ) )
+                        
+                        self._option[ mark ] = Title( line )
+                        printf( "setting new title '%s'\n" % line, stream = log_file )
+                        break
+                    
+                    if mark == "help" :
+                        self._option[ mark ] = line
+                        printf( "setting new help '%s'\n" % line, stream = log_file )
+                        break
+                    
+                    if mark == "user" :
+                        split = line.split(":")
+                        self._option[ mark ][ split[0] ] = split[ 1:]
+                        printf( "adding new user '%s'\n" % line, stream = log_file )
+                        break
+                    
+                    self._option[ mark ] = line
+                    
+                    printf( ">>>>>>>%{Red:'%s'%} '%s'\n"
+                            , mark, line, stream = log_file )
+                    
+                    break
                 break
             
             if not text :
@@ -877,7 +903,7 @@ class OrgPy :
                     printf( "%{Yellow:%s%}\n"
                           , line[ i.span()[0] : i.span()[1] ].split("|")
                           , stream = log_file )
-                    printf( "%s\n", e )
+                    printf( "%s\n", e, stream = log_file )
                     
                 if not text :
                     break 
@@ -953,7 +979,7 @@ class OrgPy :
         and emit[ "prolog" ] is not None :
             stream.write( unicode( emit[ "prolog" ] ) )
         
-        self._content.generate( stream, emit )
+        self._content.generate( stream, emit, self )
         
         if  "epilog" in emit \
         and emit[ "epilog" ] is not None :
@@ -961,7 +987,13 @@ class OrgPy :
         
         #print stream
     # end def
-
+    
+    def generate_object( self, obj, emit = HTML ) :
+        stream = io.StringIO()
+        obj.generate( stream, emit, self )
+        return stream.getvalue()
+    # end def
+    
     def get_option( self, option ) :
         if option in self._option :
             return self._option[ option ]
