@@ -173,30 +173,92 @@ class OrgModeStyle( object ) :
 class Bold( OrgModeStyle )      : pass
 class Italic( OrgModeStyle )    : pass
 class Code( OrgModeStyle )      : pass
-class Link( OrgModeStyle )      : pass
-class NamedLink( OrgModeStyle ) : pass
-class Rule( OrgModeStyle )      : pass
-class Footnote( OrgModeStyle )  : pass
-class Input( OrgModeStyle )     : pass
-class Data( OrgModeStyle )      : 
+
+class Link( OrgModeStyle )      : 
     def pipe( self, text, orgpy ) :
-        text = re.search( "(?<=:).*?(?=\])", text ).group(0)
-        opt = orgpy.get_option( text )
-        if opt is None :
-            return "<<%s>>" % text
+        protocol = None
+        link     = None
+        name     = None
+        
+        if text[0].startswith( "[" ) :
+            if "://" in text :
+                protocol = re.search( "(?<=\[\[)\S*(?=://)", text ).group(0)
+                link     = re.search( "(?<=://)\S*(?=\]\])", text ).group(0)
+            elif text.startswith( "[[./" ) :
+                protocol = "file"
+                link     = re.search( "(?<=\[\[)\S*(?=\]\])", text ).group(0)
+            else :
+                protocol = None
+                link     = re.search( "(?<=\[\[)\S*(?=\]\])", text ).group(0)
+                # no protocol means it also could be a reference to TOC entry
+                # TODO 
+                
+            if "][" in link :
+                name = re.search( "(?<=\]\[)\S*", link ).group(0)
+                link = re.search( "\S*(?=\]\[)", link ).group(0)
+            
         else :
-            return opt.lstrip()
+            protocol = re.search( "\S*(?=://)",  text ).group(0)
+            link     = re.search( "(?<=://)\S*", text ).group(0)
+        
+        if "://" in text :
+            link = "%s://%s" % ( protocol, link )
+        
+        if name is None :
+            name = link
+        
+        return \
+        { "protocol" : protocol
+        , "link"     : link
+        , "name"     : name
+        }
     # end def
 # end class
 
-    
+class Rule( OrgModeStyle )      : pass
+class Footnote( OrgModeStyle )  : pass
+class Input( OrgModeStyle )     : pass
+
+class Data( OrgModeStyle ) : 
+    def pipe( self, text, orgpy ) :
+        text = re.search( "(?<=:).*?(?=\])", text ).group(0).strip()
+        
+        value = None
+        query = False
+        error = None
+        
+        if not text.startswith( "{" ) :
+            # plain data local loading of a single option element
+            opt = orgpy.get_option( text )
+            if opt is None :
+                error = "(error: invalid '%s' option tag)" % text
+            else :
+                value = opt.lstrip()
+        else :
+            # a SQL-based query
+            query = True
+            if  text.endswith( "}" ) \
+            and "}{" in text:
+                sql = re.search( "(?<=\{).*?(?=\}\{)", text ).group(0)
+                act = re.search( "(?<=\}\{).*?(?=\})", text ).group(0)
+                value = ( sql, act )
+            else :
+                error = "(error: invalid 'data' syntax)"
+        
+        return \
+        { "value"  : value
+        , "query"  : query 
+        , "error"  : error
+        }
+    # end def
+# end class
+
 
 ORG_MODE = \
 { Bold        : OrgModeSyntax( "(?<= )\*(?=\S)", "(?<=\S)\*(?= )" )
 , Italic      : OrgModeSyntax( "(?<= )/(?=\S)",  "(?<=\S)/(?= )" )
 , Code        : OrgModeSyntax( "(?<= )=(?=\S)",  "(?<=\S)=(?= )" )
-, Link        : OrgModeSyntax( "(?<!\[\[)http://\S*" )
-, NamedLink   : OrgModeSyntax( "\[\[http://\S*\]\[\S+\]\]" )
+, Link        : OrgModeSyntax( "((?<!\[\[)\S+://\S*)|(\[\[\S+\]\])" )
 #, Rule        : OrgModeSyntax( "-----{-}*" )
 , Footnote    : OrgModeSyntax( "\[fn:\S*:\S*\]" )
 , Input       : OrgModeSyntax( "\[input:\S*\:\S*\|\S*\]" )
@@ -629,17 +691,9 @@ HTML = \
                     , ( lambda text : '</code>' )
                     )
 
-, "Link"          : ( ( lambda text : '<a href="%s">%s</a>' % \
-                        ( text
-                        , re.search( "(?<=://).*", text ).group(0)
-                        ) 
-                      )
-                    , None
-                    )
-
-, "NamedLink"     : ( ( lambda text : '<a href="%s">%s</a>' % \
-                        ( re.search( "(?<=\[\[).*(?=\]\[)" , text ).group(0)
-                        , re.search( "(?<=\]\[).*(?=\]\])" , text ).group(0)
+, "Link"          : ( ( lambda link : '<a href="%s">%s</a>' % \
+                        ( link["link"]
+                        , link["name"]
                         ) 
                       )
                     , None
@@ -665,7 +719,10 @@ HTML = \
                     , None
                     )
 
-, "Data"          : ( ( lambda field : field )
+, "Data"          : ( ( lambda data : 
+                        data[ "error" ] if data[ "error" ] is not None else
+                        data[ "value" ]
+                      )
                     , None
                     )
 
