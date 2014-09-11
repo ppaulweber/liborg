@@ -217,9 +217,26 @@ class Link( OrgModeStyle )      :
 
 class Rule( OrgModeStyle )      : pass
 class Footnote( OrgModeStyle )  : pass
-class Input( OrgModeStyle )     : pass
 
-class Data( OrgModeStyle ) : 
+class Input( OrgModeStyle ) :
+    def pipe( self, text, orgpy ) :
+        text = re.search( "(?<=:)\S*(?=\])", text ).group(0).strip()        
+        kind  = re.search( ".*?(?=:)", text ).group(0).strip()
+        
+        text  = text[ len( kind )+1: ]
+        field = re.search( ".*?(?=:)", text ).group(0).strip()
+        
+        label  = text[ len( field )+1: ]
+        
+        return \
+        { "type"   : kind
+        , "name"   : field
+        , "value"  : label
+        }
+    # end def
+# end class
+
+class Data( OrgModeStyle ) :
     def pipe( self, text, orgpy ) :
         text = re.search( "(?<=:).*?(?=\])", text ).group(0).strip()
         
@@ -261,7 +278,7 @@ ORG_MODE = \
 , Link        : OrgModeSyntax( "((?<!\[\[)\S+://\S*)|(\[\[\S+\]\])" )
 #, Rule        : OrgModeSyntax( "-----{-}*" )
 , Footnote    : OrgModeSyntax( "\[fn:\S*:\S*\]" )
-, Input       : OrgModeSyntax( "\[input:\S*\:\S*\|\S*\]" )
+, Input       : OrgModeSyntax( "\[input:\S+:\S+:\S*\]" )
 , Data        : OrgModeSyntax( "\[data:\S*\]" )
 }
 
@@ -710,10 +727,10 @@ HTML = \
                       )
                     , None
                     )
-, "Input"         : ( ( lambda text : '<input type="%s" name="%s" value="%s" />' % \
-                        ( re.search( ".*?(?=:)" ,   text[7:] ).group(0)
-                        , re.search( "(?<=:).*?(?=\|)", text[7:] ).group(0)
-                        , re.search( "(?<=\|).*?(?=\])", text[7:] ).group(0)
+, "Input"         : ( ( lambda inp : '<input type="%s" name="%s" value="%s" />' % \
+                        ( inp[ "type" ]
+                        , inp[ "name" ]
+                        , inp[ "value" ]
                         )
                       )
                     , None
