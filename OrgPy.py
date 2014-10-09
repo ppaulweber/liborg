@@ -18,7 +18,7 @@ from Verbose import *
 
 
 log_file = None
-log_file = sys.stderr
+#log_file = sys.stderr
 
 #==============================================================================
 # ORG-MODE STYLES
@@ -525,35 +525,93 @@ class TableRow( OrgModeContent ) :
 #==============================================================================
 # LIST
 #==============================================================================
-        
+
+#List_stack = None
+
 class List( OrgModeContent ) :
-    regex = re.compile( "-\s|\+\s" )
+    regex = re.compile( "^(  )*- .*?$" )
     
-    def __init__( self ) :
+    _stack = None
+    _pos   = None
+    
+    def __init__( self, depth = 0 ) :
         OrgModeContent.__init__( self )
+        self._depth = depth
     # end def
-
-    def append( self, content ) :
-        assert( isinstance( content, ListItem ) )
-        self._content.append( content )
-    # end def
-# end class
-
-class ListItem( OrgModeContent ) :
-    def __init__( self, line ) :
-                        
-        OrgModeContent.__init__( self, line )
-        
-        self._depth = 0 # TODO
-    # end def
-
+    
     def __str__( self ) :
-        return transform( "%{Cyan:%s(%i):%} %s <TODO> %{yellow:%s%}" ) % \
+        return transform( "%{Cyan:%s%}@%s: %s <TODO> %{yellow:%s%}" ) % \
             ( OrgModeContent.__str__( self )
             , self._depth
             , self._line
             , self._styles )
     # end def
+    
+    def append( self, content ) :
+        assert( isinstance( content, ListItem ) )
+        
+        dep = content._line.find( "- " )
+        content._depth = dep;
+        
+        try :
+            last = List._stack[ List._pos ]
+        except :
+            import pdb; pdb.set_trace()
+           
+        #printf( "%s =?= %s\n", dep, last._depth, stream = sys.stderr )
+        
+        if dep > last._depth :
+            
+            List._pos = dep
+            List._stack[ List._pos ] = List( dep )
+            
+            last._content.append( List._stack[ List._pos ] )
+            last = List._stack[ List._pos ]
+
+        elif dep < last._depth :
+            for k in List._stack.keys() :
+                if k > dep :
+                    del List._stack[ k ]
+            
+            List._pos = dep
+            last = List._stack[ List._pos ]
+            
+            
+        # plain adding to this list!
+        last._content.append( content )
+    # end def
+        
+    def generate_pre( self, stream, emit, line ) :
+        if emit[ 0 ] is not None :
+            stream.write( unicode( emit[ 0 ]() ) )
+    # end def
+    
+    def generate_post( self, stream, emit, line ) :
+        if emit[ 1 ] is not None :
+            stream.write( unicode( emit[ 1 ]() ) )
+    # end def
+# end class
+
+class ListItem( OrgModeContent ) :
+    def __init__( self, line, depth = 0 ) :
+        OrgModeContent.__init__( self, line )
+        self._depth = depth
+    # end def
+
+    def __str__( self ) :
+        return transform( "%{Cyan:%s:%}@%s %s <TODO> %{yellow:%s%}" ) % \
+            ( OrgModeContent.__str__( self )
+            , self._depth
+            , self._line
+            , self._styles )
+    # end def
+
+    def generate_pre( self, stream, emit, line ) :
+        if emit is not None:
+            line = line[ self._depth+1: ]
+            stream.write( unicode( emit( line, self._depth ) ) )
+    # end def
+
 # end class
 
 
@@ -708,6 +766,13 @@ HTML = \
                     , ( lambda text : '</code>' )
                     )
 
+, "List"          : ( ( lambda : '<ul>\n' )
+                    , ( lambda : '</ul>\n' )
+                    )
+
+, "ListItem"      : ( lambda text, depth : '<li>%s</li>\n' % text )
+
+                    
 , "Link"          : ( ( lambda link : '<a href="%s">%s</a>' % \
                         ( link["link"]
                         , link["name"]
@@ -966,27 +1031,34 @@ class OrgPy :
                 continue
             
             
-            elements = [ (Table,  TableRow)
-                       , (List,   ListItem)
-                       ]
-            
-            for e in elements :
-                for i in e[0].regex.finditer( line ) :
-                    text = False
-                    last = stack[-1].peek()
-                    if last is None \
-                    or not isinstance( last, e[0] ) :
-                        stack[-1].append( e[0]() )
-                    
-                    stack[-1].peek().append( e[1]( line ) )
-                    printf( "%{yellow:%s%}\n", i.span(), stream = log_file )
-                    printf( "%{Yellow:%s%}\n"
-                          , line[ i.span()[0] : i.span()[1] ].split("|")
-                          , stream = log_file )
-                    printf( "%s\n", e, stream = log_file )
-                    
+            # elements = [ (List,   ListItem)
+            #            #, (Table,  TableRow)
+            #            ]
+
+            for i in List.regex.finditer( line ) :
+                text = False
+                last = stack[-1].peek()
+                if last is None \
+                or not isinstance( last, List ) :
+                    _l = List( 0 )
+                    stack[-1].append( _l )
+                    List._stack = { 0 : _l }
+                    List._pos = 0
+                
+                #List._stack[ -1 ].append( ListItem( line ) )
+                stack[-1].peek().append( ListItem( line ) )
+                printf( "%{yellow:%s%}\n", i.span(), stream = log_file )
+                printf( "%{Yellow:%s%}\n"
+                      , line[ i.span()[0] : i.span()[1] ].split("|")
+                      , stream = log_file )
+                printf( "%s\n", List, stream = log_file )
+                
                 if not text :
-                    break 
+                    break
+            
+            
+            # for e in elements :
+            
             if not text :
                 continue
             
