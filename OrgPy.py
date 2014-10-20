@@ -250,7 +250,10 @@ class Data( OrgModeStyle ) :
             if opt is None :
                 error = "(error: invalid '%s' option tag)" % text
             else :
-                value = opt.lstrip()
+                if isinstance( opt, Title ) :
+                    value = opt._line
+                else :
+                    value = opt.lstrip()
         else :
             # a SQL-based query
             query = True
