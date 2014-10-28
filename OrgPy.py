@@ -18,7 +18,7 @@ from Verbose import *
 
 
 log_file = None
-#log_file = sys.stderr
+log_file = sys.stderr
 
 #==============================================================================
 # ORG-MODE STYLES
@@ -497,15 +497,26 @@ class ParagraphLine( OrgModeContent ) :
 #==============================================================================
 
 class Table( OrgModeContent ) :
-    regex = re.compile( "(\|-\s-\|)|(\|\s\|)" )
+    regex = re.compile( "(\|-)|(\|\s.*\|)" )
     
     def __init__( self ) :
         OrgModeContent.__init__( self )
+        self.table = []
     # end def
-
+    
     def append( self, content ) :
         assert( isinstance( content, TableRow ) )
         self._content.append( content )
+    # end def
+
+    def generate_pre( self, stream, emit, line ) :
+        if emit[ 0 ] is not None :
+            stream.write( unicode( emit[ 0 ]() ) )
+    # end def
+    
+    def generate_post( self, stream, emit, line ) :
+        if emit[ 1 ] is not None :
+            stream.write( unicode( emit[ 1 ]() ) )
     # end def
 # end class
 
@@ -514,13 +525,26 @@ class TableRow( OrgModeContent ) :
     
     def __init__( self, line = None ) :
         OrgModeContent.__init__( self, line )
+        
+        col = line.split( "|" )
+        col = [ c.strip() for c in col ]
+        self.columns = col[ 1:-1 ]
+
+        if "---+---" in self.columns[0] :
+            self.columns = [ None for c in self.columns[0].split( "-+-" ) ]
     # end def
 
     def __str__( self ) :
-        return transform( "%{Blue:%s:%} %s <TODO> %{yellow:%s%}" ) % \
+        return transform( "%{Blue:%s:%} %s <%s> %{yellow:%s%}" ) % \
             ( OrgModeContent.__str__( self )
             , self._line
+            , self.columns
             , self._styles )
+    # end def
+
+    def generate_pre( self, stream, emit, line ) :
+        if emit is not None:
+            stream.write( unicode( emit( self.columns ) ) )
     # end def
 # end class
 
@@ -724,6 +748,16 @@ class Source( Block ) :
 # ORG-PY
 #==============================================================================
 
+def _table_row2html( row ) :
+    s = ""
+
+    for r in row :
+        if r is None :
+            r = "<hr>"
+        s = '%s<td>%s</td>' % ( s, r )
+    
+    return s
+# end def
 
 HTML = \
 { "comment"       : ( lambda text : "<!-- %s -->\n" % text )
@@ -775,7 +809,12 @@ HTML = \
 
 , "ListItem"      : ( lambda text, depth : '<li>%s</li>\n' % text )
 
-                    
+, "Table"         : ( ( lambda : '<table>\n' )
+                    , ( lambda : '</table>\n' )
+                    )
+
+, "TableRow"      : ( lambda row : '<tr>%s</tr>\n' % _table_row2html( row ) )
+            
 , "Link"          : ( ( lambda link : '<a href="%s">%s</a>' % \
                         ( link["link"]
                         , link["name"]
@@ -1033,11 +1072,6 @@ class OrgPy :
             if not text :
                 continue
             
-            
-            # elements = [ (List,   ListItem)
-            #            #, (Table,  TableRow)
-            #            ]
-
             for i in List.regex.finditer( line ) :
                 text = False
                 last = stack[-1].peek()
@@ -1048,7 +1082,6 @@ class OrgPy :
                     List._stack = { 0 : _l }
                     List._pos = 0
                 
-                #List._stack[ -1 ].append( ListItem( line ) )
                 stack[-1].peek().append( ListItem( line ) )
                 printf( "%{yellow:%s%}\n", i.span(), stream = log_file )
                 printf( "%{Yellow:%s%}\n"
@@ -1058,9 +1091,25 @@ class OrgPy :
                 
                 if not text :
                     break
+
+            for i in Table.regex.finditer( line ) :
+                text = False
+                last = stack[-1].peek()
+                if last is None \
+                or not isinstance( last, Table ) :
+                    _l = Table()
+                    stack[-1].append( _l )
+                
+                stack[-1].peek().append( TableRow( line ) )
+                printf( "%{Red:%s%}\n", i.span(), stream = log_file )
+                printf( "%{Red:%s%}\n"
+                      , line[ i.span()[0] : i.span()[1] ].split("|")
+                      , stream = log_file )
+                printf( "%s\n", Table, stream = log_file )
+                
+                if not text :
+                    break
             
-            
-            # for e in elements :
             
             if not text :
                 continue
