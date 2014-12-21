@@ -34,5 +34,6 @@ if __name__ == "__main__" :
         
     with io.open( file_name + ".tex" , "w" ) as fd:
         orgpy.generate( fd, emit=LATEX )
-
+        orgpy.generate( sys.stdout, emit=LATEX )
+        
     print orgpy._option

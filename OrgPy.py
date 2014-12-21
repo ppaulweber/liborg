@@ -759,6 +759,24 @@ def _table_row2html( row ) :
     return s
 # end def
 
+def _table_row2latex( row ) :
+    s = ""
+
+    first = True
+    for r in row :
+        if r is None :
+            r = "  \hline"
+            return r
+
+        if first :
+            first = False
+            s = '%s  %s' % ( s, r )
+        else :
+            s = '%s  &  %s' % ( s, r )
+    
+    return s
+# end def
+
 HTML = \
 { "comment"       : ( lambda text : "<!-- %s -->\n" % text )
 
@@ -870,6 +888,13 @@ LATEX = \
                     )
 
 , "ParagraphLine" : ( lambda line : "%s\n" % line )
+
+, "Table"         : ( ( lambda : '\\begin{table}\n' )
+                    , ( lambda : '\\end{table}\n' )
+                    )
+
+, "TableRow"      : ( lambda row : '%s \\\\ \n' % _table_row2latex( row ) )
+
 }
 
 
