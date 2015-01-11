@@ -529,11 +529,20 @@ class TableRow( OrgModeContent ) :
         col = line.split( "|" )
         col = [ c.strip() for c in col ]
         self.columns = col[ 1:-1 ]
-
+        
         if "---+---" in self.columns[0] :
             self.columns = [ None for c in self.columns[0].split( "-+-" ) ]
+            
+        l = len( self.columns ) - 1
+        i = 0
+        for c in self.columns :
+            if c is None :
+                c = "-+-"
+            
+            self.append( TableCell( c, i == l ) )
+            i = i + 1
     # end def
-
+    
     def __str__( self ) :
         return transform( "%{Blue:%s:%} %s <%s> %{yellow:%s%}" ) % \
             ( OrgModeContent.__str__( self )
@@ -544,8 +553,35 @@ class TableRow( OrgModeContent ) :
 
     def generate_pre( self, stream, emit, line ) :
         if emit is not None:
-            stream.write( unicode( emit( self.columns ) ) )
+            stream.write( unicode( emit[ 0 ]() ) )
     # end def
+
+    def generate_post( self, stream, emit, line ) :
+        if emit is not None:
+            stream.write( unicode( emit[ 1 ]() ) )
+    # end def
+# end class
+
+class TableCell( OrgModeContent ) :
+    def __init__( self, line, isLast ) :
+        OrgModeContent.__init__( self, line )
+        self._isLast = isLast
+    # end def
+        
+    def __str__( self ) :
+        return transform( "%{Magenta:%s:%} %s %{yellow:%s%}" ) % \
+            ( OrgModeContent.__str__( self )
+            , self._line
+            , self._styles )
+    # end def
+    
+    def generate_pre( self, stream, emit, line ) :
+        if emit is not None:
+            if line == "-+-" :
+                line = None
+            stream.write( unicode( emit( line, self._isLast ) ) )
+    # end def
+
 # end class
 
 
@@ -748,35 +784,6 @@ class Source( Block ) :
 # ORG-PY
 #==============================================================================
 
-def _table_row2html( row ) :
-    s = ""
-
-    for r in row :
-        if r is None :
-            r = "<hr>"
-        s = '%s<td>%s</td>' % ( s, r )
-    
-    return s
-# end def
-
-def _table_row2latex( row ) :
-    s = ""
-
-    first = True
-    for r in row :
-        if r is None :
-            r = "  \hline"
-            return r
-
-        if first :
-            first = False
-            s = '%s  %s' % ( s, r )
-        else :
-            s = '%s  &  %s' % ( s, r )
-    
-    return s
-# end def
-
 HTML = \
 { "comment"       : ( lambda text : "<!-- %s -->\n" % text )
 
@@ -831,8 +838,15 @@ HTML = \
                     , ( lambda : '</table>\n' )
                     )
 
-, "TableRow"      : ( lambda row : '<tr>%s</tr>\n' % _table_row2html( row ) )
-            
+, "TableRow"      : ( ( lambda : '<tr>' )
+                    , ( lambda : '</tr>\n' )
+                    )
+
+, "TableCell"     : ( lambda text, isLast : '<td>&nbsp;</td>' if text == "" else 
+                      '<td>%s</td>' % text                    if text is not None else 
+                      '<td><hr></td>' 
+                    )
+  
 , "Link"          : ( ( lambda link : '<a href="%s">%s</a>' % \
                         ( link["link"]
                         , link["name"]
@@ -893,8 +907,13 @@ LATEX = \
                     , ( lambda : '\\end{table}\n' )
                     )
 
-, "TableRow"      : ( lambda row : '%s \\\\ \n' % _table_row2latex( row ) )
+, "TableRow"      : ( ( lambda : '' )
+                    , ( lambda : '\\\\ \n' )
+                    )
 
+, "TableCell"     : ( lambda text, isLast : '%s & ' % text if not isLast else
+                                            '%s ' % text
+                    )
 }
 
 
