@@ -945,7 +945,7 @@ LATEX = \
 }
 
 
-class OrgPy :
+class libOrgPy :
     def __init__( self, filename, configuration = ORG_MODE ) :
         
         self._filename = filename;
@@ -1283,12 +1283,12 @@ class OrgPy :
 if __name__ == "__main__" :
     
     if len(sys.argv) != 2 :
-        print "usage: python OrgPy.py <ORG-FILE>"
+        print "usage: python libOrgPy.py <ORG-FILE>"
         sys.exit(-1)
         
     file_name = sys.argv[1]    
     
-    orgpy = OrgPy( file_name )
+    orgpy = libOrgPy( file_name )
     
     print "DUMPING"
     orgpy.dump()
