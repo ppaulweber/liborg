@@ -1,5 +1,5 @@
 
-* liborypy - org-file parser and code generator library for python
+* liborg: org-mode file parser and code generator library
 
 This project is still under development but you can already test this parser and
 code generator if you want :)
