@@ -38,7 +38,7 @@ import re
 import io
 import datetime
 
-sys.path.append( "../verbose/python" )
+sys.path.append( os.path.join( os.path.dirname( __file__ ), "..", "..", "stdhl", "py" ) )
 
 from Verbose import *
 
