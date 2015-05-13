@@ -3,7 +3,7 @@
 #   All rights reserved.
 #   
 #   Developed by: Philipp Paulweber
-#                 https://github.com/ppaulweber/liborgpy
+#                 https://github.com/ppaulweber/liborg
 #   
 #   Permission is hereby granted, free of charge, to any person obtaining a 
 #   copy of this software and associated documentation files (the "Software"), 
@@ -945,7 +945,7 @@ LATEX = \
 }
 
 
-class libOrgPy :
+class libOrg :
     def __init__( self, filename, configuration = ORG_MODE ) :
         
         self._filename = filename;
@@ -1283,12 +1283,12 @@ class libOrgPy :
 if __name__ == "__main__" :
     
     if len(sys.argv) != 2 :
-        print "usage: python libOrgPy.py <ORG-FILE>"
+        print "usage: python libOrg.py <ORG-FILE>"
         sys.exit(-1)
         
     file_name = sys.argv[1]    
     
-    orgpy = libOrgPy( file_name )
+    orgpy = libOrg( file_name )
     
     print "DUMPING"
     orgpy.dump()

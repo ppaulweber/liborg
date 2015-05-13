@@ -4,20 +4,22 @@
 This project is still under development but you can already test this parser and
 code generator if you want :)
 
+Currently the library contains only a Python-based implementation of the 
+org-mode parser and code generator.
 
 ** Usage
 
-The usage of this library is very simple. Just import the =OrgPy= class and
+The usage of this library is very simple. Just import the =libOrg= class and
 call the constructor with a file name.
 
 #+begin_src: python
-import OrgPy from OrgPy
+import libOrg from libOrg
 
-orgfile = OrgPy( "<PATH-TO-AN-ORG-FILE>" )
+orgfile = libOrg( "<PATH-TO-AN-ORG-FILE>" )
 #+end_src:
 
 Now the file is already parsed and can be generated to the desired format.
-Just call the method =generate= and pass a file stream parameter and OrgPy 
+Just call the method =generate= and pass a file stream parameter and *libOrg* 
 does the rest. By default the =generate= method exports to =HTML=.
 
 #+begin_src: python
@@ -25,10 +27,10 @@ import sys
 orgfile.generate( sys.stdout )
 #+end_src:
 
-You want to export to a different language? No problem! OrgPy is designed 
+You want to export to a different language? No problem! *libOrg* is designed 
 very flexible and currently it defines an export format to =HTML= and =LaTeX=.
 And it is very easy to adopted, change or even create new export formats 
-for =OrgPy=.
+for =libOrg=.
 
 Here is another example where a parsed org file is generated to a temporary
 file with the =LaTeX= exporter. 
@@ -36,7 +38,7 @@ file with the =LaTeX= exporter.
 #+begin_src: python
 import io
 with io.open( "out.tex" , "w" ) as fd:
-    orgfile.generate( fd, emit = OrgPy.LATEX )
+    orgfile.generate( fd, emit = libOrg.LATEX )
 #+end_src:
 
 I will provide more export formats in the future but currently the focus is
@@ -44,3 +46,8 @@ only on the =HTML= and the =LaTeX= export format.
 
 ** Org-mode Language Support
 
+A fully list of all features is coming soon!
+
+** License
+
+#+include: LICENSE.txt
