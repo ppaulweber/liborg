@@ -50,4 +50,4 @@ A fully list of all features is coming soon!
 
 ** License
 
-#+include: LICENSE.txt
+For license and copyright information please take a look into the LICENSE.txt file.
