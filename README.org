@@ -48,6 +48,11 @@ only on the =HTML= and the =LaTeX= export format.
 
 A fully list of all features is coming soon!
 
+** Example
+
+In the =var= folder you can find a quick example org-mode file which was translated to =HTML= and =LaTeX=. Furthermore, the LaTeX file was compiled to a PDF file.
+
+
 ** License
 
 For license and copyright information please take a look into the LICENSE.txt file.

@@ -528,16 +528,18 @@ class Table( OrgModeContent ) :
     def __init__( self ) :
         OrgModeContent.__init__( self )
         self.table = []
+        self.columns_max = 0
     # end def
     
     def append( self, content ) :
         assert( isinstance( content, TableRow ) )
         self._content.append( content )
+        self.columns_max = max( self.columns_max, len( content.columns ) )
     # end def
-
+    
     def generate_pre( self, stream, emit, line ) :
         if emit[ 0 ] is not None :
-            stream.write( unicode( emit[ 0 ]() ) )
+            stream.write( unicode( emit[ 0 ]( self.columns_max ) ) )
     # end def
     
     def generate_post( self, stream, emit, line ) :
@@ -810,140 +812,8 @@ class Source( Block ) :
 # ORG-PY
 #==============================================================================
 
-HTML = \
-{ "comment"       : ( lambda text : "<!-- %s -->\n" % text )
-
-, "prolog"        : "<!-- prolog -->\n"
-
-, "epilog"        : "<!-- epilog -->\n"
-
-, "Title"         : ( lambda text : "<h1>%s</h1>\n" % text )
-
-, "Heading"       : ( ( lambda depth, line : 
-                        "<h%s>%s</h%s>\n" % (depth+1, line, depth+1,) \
-                            if depth <= 4 else 
-                        "<br><div><b>%s</b></div>\n" % line )
-                    , None
-                    )
-
-, "Paragraph"     : ( ( lambda cnt : "<div>\n" )
-                    , ( lambda cnt : "</div>\n" )
-                    )
-
-, "ParagraphLine" : ( lambda line : "%s\n" % line )
-
-, "BlockLine"     : ( lambda line : "%s\n" % line )
-
-, "Html"          : ( ( lambda : "<!-- begin html -->\n" )
-                    , ( lambda : "<!--  end  html -->\n" )
-                    )
-
-, "Source"        : ( ( lambda : "<!-- begin src -->\n" )
-                    , ( lambda : "<!--  end  src -->\n" )
-                    )
-
-, "Bold"          : ( ( lambda text : "<b>" )
-                    , ( lambda text : "</b>" )
-                    )
-
-, "Italic"        : ( ( lambda text : "<i>" )
-                    , ( lambda text : "</i>" )
-                    )
-
-, "Code"          : ( ( lambda text : '<code>' )
-                    , ( lambda text : '</code>' )
-                    )
-
-, "List"          : ( ( lambda : '<ul>\n' )
-                    , ( lambda : '</ul>\n' )
-                    )
-
-, "ListItem"      : ( lambda text, depth : '<li>%s</li>\n' % text )
-
-, "Table"         : ( ( lambda : '<table>\n' )
-                    , ( lambda : '</table>\n' )
-                    )
-
-, "TableRow"      : ( ( lambda : '<tr>' )
-                    , ( lambda : '</tr>\n' )
-                    )
-
-, "TableCell"     : ( lambda text, isLast : '<td>&nbsp;</td>' if text == "" else 
-                      '<td>%s</td>' % text                    if text is not None else 
-                      '<td><hr></td>' 
-                    )
-  
-, "Link"          : ( ( lambda link : '<a href="%s">%s</a>' % \
-                        ( link["link"]
-                        , link["name"]
-                        ) 
-                      )
-                    , None
-                    )
-
-#, "Rule"          : ( ( lambda text : '<hr>' )
-#                    , None
-#                    )
-
-, "Footnote"      : ( ( lambda text : '<sup><a href="%s">%s</a></sup>' % \
-                        ( re.search( ".*?(?=:)" ,   text[4:] ).group(0)
-                        , re.search( "(?<=:).*?(?=\])", text[4:] ).group(0)
-                        ) 
-                      )
-                    , None
-                    )
-
-, "Input"         : ( ( lambda inp : '<input type="%s" name="%s" value="%s" />' % \
-                        ( inp[ "type" ]
-                        , inp[ "name" ]
-                        , inp[ "value" ]
-                        )
-                      )
-                    , None
-                    )
-
-, "Data"          : ( ( lambda data : 
-                        data[ "error" ] if data[ "error" ] is not None else
-                        data[ "value" ]
-                      )
-                    , None
-                    )
-
-}
-
-
-LATEX = \
-{ "comment"       : ( lambda text : "%%%%%% %s\n" % text )
-
-, "Heading"       : ( ( lambda depth, line : 
-                        "\section{%s}\n"       % line if depth == 1 else
-                        "\subsection{%s}\n"    % line if depth == 2 else
-                        "\subsubsection{%s}\n" % line if depth == 3 else
-                        "\paragraph{%s}\n"     % line if depth == 4 else
-                        #"\subparagraph{%s}\n"  % line if depth == 5 else
-                        "TODO\n" )
-                    , None
-                    )
-
-, "Paragraph"     : ( ( lambda cnt : "" )
-                    , ( lambda cnt : "\n" )
-                    )
-
-, "ParagraphLine" : ( lambda line : "%s\n" % line )
-
-, "Table"         : ( ( lambda : '\\begin{table}\n' )
-                    , ( lambda : '\\end{table}\n' )
-                    )
-
-, "TableRow"      : ( ( lambda : '' )
-                    , ( lambda : '\\\\ \n' )
-                    )
-
-, "TableCell"     : ( lambda text, isLast : '%s & ' % text if not isLast else
-                                            '%s ' % text
-                    )
-}
-
+from HTML  import HTML
+from LATEX import LATEX
 
 class libOrg :
     def __init__( self, filename, configuration = ORG_MODE ) :
@@ -1294,8 +1164,6 @@ if __name__ == "__main__" :
     orgpy.dump()
     
     print "EMITING CODE"
-    
-    file_name = ".attic/out"
     
     with io.open( file_name + ".html" , "w" ) as fd:
         orgpy.generate( fd )

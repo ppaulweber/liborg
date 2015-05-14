@@ -1,0 +1,31 @@
+
+#+title: This is an example for libOrg
+
+Introduction text with a *bold* and an /italic/ text.
+
+* First section
+
+In this section I would like to start a subsection. [data:title]
+
+** My desired subsection
+
+* Second section
+
+Current features:
+
+** Table rendering
+
+I present you my example table:
+
+| topic A | topic B | topic C |
+|---------+---------+---------|
+|     100 |     200 |      50 |
+|    3.14 |    4.31 |    1.34 |
+
+** Some links
+
+This is a [[https://github.com/ppaulweber/liborg][link]] to this repository.
+
+* Last section
+
+End of example :-)
