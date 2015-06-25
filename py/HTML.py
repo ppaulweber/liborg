@@ -60,8 +60,8 @@ HTML = \
                     , ( lambda : "<!--  end  html -->\n" )
                     )
 
-, "Source"        : ( ( lambda : "<!-- begin src -->\n" )
-                    , ( lambda : "<!--  end  src -->\n" )
+, "Source"        : ( ( lambda : "<pre>\n" )
+                    , ( lambda : "</pre>\n" )
                     )
 
 , "Bold"          : ( ( lambda text : "<b>" )
