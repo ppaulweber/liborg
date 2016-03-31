@@ -1,5 +1,5 @@
 #   
-#   Copyright (c) 2015 Philipp Paulweber
+#   Copyright (c) 2016 Philipp Paulweber
 #   All rights reserved.
 #   
 #   Developed by: Philipp Paulweber
@@ -1145,6 +1145,51 @@ class libOrg :
             return self._option[ option ]
         else :
             return None
+    # end def
+
+    def findFirstTable( self, obj = None ) :
+        if obj is None : #isinstance( self, libOrg.libOrg ) :
+            return self.findFirstTable( self._content )
+        #if isinstance( obj, libOrg.OrgModeContent ) :
+        if isinstance( obj, OrgModeContent ) :
+            for c in obj._content :
+                #if isinstance( c, libOrg.Table ) :
+                if isinstance( c, Table ) :
+                    return c
+        else :
+            assert "invalid 'org' object to analyze"
+        return None
+    # end def
+    
+    # generic function can be moved to 'liborg' repository!
+    def iterateTable( self, obj, row_action = lambda y, row : True, cell_action = lambda x, y, cell : None ) :
+        def print_row( y, row ) :
+            print y, row
+            return True
+        # end def
+        def print_cell( x, y, row ) :
+            print x, y, row        
+        # end def
+        if row_action is None :
+            row_action = print_row
+        if cell_action is None :
+            cell_action = print_cell
+        
+        #assert isinstance( obj, libOrg.Table )    
+        assert isinstance( obj, Table )    
+        y = 0
+        for row in obj._content :
+            #assert isinstance( row, libOrg.TableRow )
+            assert isinstance( row, TableRow )
+            result = row_action( y, row )
+            if result == True or result is None :
+                x = 0
+                for cell in row._content :
+                    #assert isinstance( cell, libOrg.TableCell )
+                    assert isinstance( cell, TableCell )
+                    cell_action( x, y, cell )
+                    x = x + 1
+            y = y + 1
     # end def
 # end class
 
