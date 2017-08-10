@@ -50,9 +50,7 @@ all: main clean
 
 main: $(SOURCE).bbl $(SOURCE).gen
 	@echo "###---" $(ORG_PATH)
-	@echo "###---" $(ORGFILE)
 	@echo "###---" $(SOURCE)
-	grep "#+bibliography:" $(ORGFILE)
 
 	emacs $(ORGFILE) -l $(SOURCE).gen.el --batch -f `cat $(SOURCE).gen.ox` --kill
 
@@ -61,8 +59,8 @@ main: $(SOURCE).bbl $(SOURCE).gen
 	TEXINPUTS=".:$(ORG_PATH):`cat $(SOURCE).gen.var`:`cat $(SOURCE).gen.var`/..::" \
 	pdflatex -draftmode -shell-escape -interaction nonstopmode $(SOURCE).tex
 
-	@(if [ `grep "#+bibliography:" $(ORGFILE)` ]; then  \
-	  @echo "###---" $(ORGFILE) has a bibliography\
+	@(if [ "`grep \"#+bibliography:\" $(ORGFILE)`" ]; then  \
+	  echo "###---" $(ORGFILE) has a bibliography;\
 	  \
 	  grep "#+bibliography:" $(ORGFILE) | sed "s/.*:/\\\\bibdata{/g" | sed "s/$$/ }/g" | sed "s/\s//g" | cat >> $(SOURCE).aux; \
 	  \
