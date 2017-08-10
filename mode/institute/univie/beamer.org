@@ -1,0 +1,41 @@
+#
+#   Copyright (c) 2016-2017 Philipp Paulweber
+#   All rights reserved.
+#
+#   Developed by: Philipp Paulweber
+#                 https://github.com/ppaulweber/liborg
+#
+#   This file is part of liborg.
+#
+#   liborg is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   liborg is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with liborg. If not, see <http://www.gnu.org/licenses/>.
+#
+
+#+include: ../univie.org
+
+#+latex_header: \setbeamercolor{structure}{fg=univie}
+#+latex_header: \setbeamercolor{alerted text}{fg=black}
+#+latex_header: \setbeamerfont{alerted text}{series=\bfseries}
+#+latex_header: \setbeamerfont{footnote}{size=\scriptsize}
+#+latex_header: \hypersetup{colorlinks,linkcolor=,urlcolor=univie}
+#+latex_header: \setbeamertemplate{headline}{ \hfill \parbox{32.5mm}{ \vspace{2.5mm} \includegraphics[height=8.0mm]{mode/institute/univie/img/logo.eps} \vspace{-8.0mm} } }
+
+#+beamer_header: \institute[INST]{\univieAddress}
+
+#+latex_header: \newcommand{\coverSlide}[2]{ \vfill \begin{tikzpicture}[remember picture, overlay, background rectangle/.style={fill=black!75}, show background rectangle] \node (COVER) at (.5\linewidth,0) {\includegraphics[#1]{#2}}; \end{tikzpicture} \vfill }
+
+#+macro: thank_you_slide_with  @@latex:\addtocounter{framenumber}{-1} \setbeamertemplate{footline}{} \begin{frame}{} \centering {\usebeamercolor[fg]{structure} \Large $1 } \end{frame}@@
+#+macro: thank_you_slide       {{{thank_you_slide_with(Thank you for your attention!)}}}
+#+macro: thank_you_slide_de    {{{thank_you_slide_with(Danke für Ihre Aufmerksamkeit!)}}}
+
+#+macro: cover_slide           @@latex:\addtocounter{framenumber}{-1} \setbeamertemplate{footline}{} \begin{frame}{} \coverSlide{height=20mm}{mode/institute/univie/img/logo_white.eps} \end{frame}@@

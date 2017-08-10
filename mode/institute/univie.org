@@ -1,0 +1,57 @@
+#
+#   Copyright (c) 2016-2017 Philipp Paulweber
+#   All rights reserved.
+#
+#   Developed by: Philipp Paulweber
+#                 https://github.com/ppaulweber/liborg
+#
+#   This file is part of liborg.
+#
+#   liborg is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   liborg is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with liborg. If not, see <http://www.gnu.org/licenses/>.
+#
+
+# settings from: http://www.univie.ac.at/iggerm/archive/files/queerreading/CorporateDesign_Manual.pdf 
+
+
+#+latex_header: \definecolor{univie}        {HTML}{0063a6} %% UniVie Color Blue   RGB(  0| 99|166)
+#+latex_header: \definecolor{univie_red}    {HTML}{dd4814} %% UniVie Color Red    RGB(221| 72| 20)
+#+latex_header: \definecolor{univie_yellow} {HTML}{eaab00} %% UniVie Color Yellow RGB(234|171|  0)
+#+latex_header: \definecolor{univie_gray}   {HTML}{666666} %% UniVie Color Gray   RGB(102|102|102)
+#+latex_header: \definecolor{univie_brand}  {HTML}{a71c49} %% UniVie Color Brand  RGB(167| 28| 73)
+
+#+macro: univie_logo       mode/institute/univie/img/logo.eps
+#+macro: univie_logo_black mode/institute/univie/img/logo_black.eps
+#+macro: univie_logo_white mode/institute/univie/img/logo_white.eps
+
+#+latex_header: \newcommand{\univieAddress}{\href{http://www.univie.ac.at}{University of Vienna}\\ \href{http://cs.univie.ac.at}{Faculty of Computer Science}}
+
+#+latex_header: \newcommand{\univieHeading}[6]{ \begin{minipage}{\linewidth}   \begin{minipage}{0.575\linewidth} {\noindent #1} \end{minipage} \hfill \begin{minipage}[b]{0.425\linewidth} \vspace{-20mm} \includegraphics[height=17.5mm]{#2} \end{minipage} \end{minipage} \vspace{1cm} \begin{center} \textbf{\huge{#3}}\\ \vspace{0.2cm} \LARGE{#4}\\ \vspace{0.4cm} \Large{#5} \vspace{0.6cm} \\ \large{#6} \vspace{0.8cm} \end{center}}
+
+#+latex_header: \newcommand{\univieHeadingNosub}[6]{ \begin{minipage}{\linewidth}   \begin{minipage}{0.575\linewidth} {\noindent #1} \end{minipage} \hfill \begin{minipage}[b]{0.425\linewidth} \vspace{-20mm} \includegraphics[height=17.5mm]{#2} \end{minipage} \end{minipage} \vspace{0.75cm} \begin{center} \textbf{\huge{#3}}\\ \vspace{0.1cm} \Large{#4} \vspace{0.1cm} \\ \large{#5} \vspace{0.4cm} \end{center}}
+
+#+latex_header: \newcommand{\univieHeadingPlain}[2]{ \begin{minipage}{\linewidth}   \begin{minipage}{0.575\linewidth} {\noindent #1} \end{minipage} \hfill \begin{minipage}[b]{0.425\linewidth} \vspace{-20mm} \includegraphics[height=17.5mm]{#2} \end{minipage} \end{minipage}}
+
+#+macro: univie_heading \univieHeading{\univieAddress}{{{{univie_logo}}}}{{{{title}}}}{{{{subtitle}}}}{{{{author}}}}{{{{date}}}}
+#+macro: univie_heading_nosub \univieHeadingNosub{\univieAddress}{{{{univie_logo}}}}{{{{title}}}}{{{{author}}}}{{{{date}}}}
+#+macro: univie_heading_plain \univieHeadingPlain{\univieAddress}{{{{univie_logo}}}}
+
+#+latex_header: \usepackage{tcolorbox}
+#+latex_header: \newenvironment{field}
+#+latex_header: {
+#+latex_header:   \begin{tcolorbox}[colframe=white!0,colback=univie]
+#+latex_header:   \color{white}\bfseries\centering
+#+latex_header: }
+#+latex_header: {
+#+latex_header:   \end{tcolorbox}
+#+latex_header: }
