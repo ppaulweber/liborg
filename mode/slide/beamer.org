@@ -31,13 +31,15 @@
 #+startup: beamer
 #+beamer_frame_level: 2
 
+#+latex_header: \renewcommand{\maketitle}{}
+
 #+latex_header: \mode<beamer>{\usetheme[showpagenr]{boxes}}
 #+latex_header: \mode<beamer>{\usecolortheme{orchid}}
 #+latex_header: \useinnertheme{default}
 #+latex_header: \usefonttheme{default}
 
 #+latex_header: \setbeamertemplate{navigation symbols}{}
-#+latex_header: \setbeamertemplate{footline}[frame number]{}
+#+latex_header: \setbeamertemplate{footline}{}
 
 #+latex_header: \AtBeginSection[]{\begin{frame}<beamer>\frametitle{{Outline}}
 #+latex_header: \tableofcontents[currentsection]\end{frame}}
@@ -59,3 +61,7 @@
 #+latex_header: \newcommand{\nobibentry}[1]{{\let\nocite\ignore\bibentry{#1}}}
 #+latex_header: \newcommand{\bibfnamefont}[1]{#1}
 #+latex_header: \newcommand{\bibnamefont}[1]{#1}
+
+#+macro: thank_you_slide_with  @@latex:\addtocounter{framenumber}{-1} \setbeamertemplate{footline}{} \begin{frame}{} \centering {\usebeamercolor[fg]{structure} \Large $1 } \end{frame}@@
+#+macro: thank_you_slide       {{{thank_you_slide_with(Thank you for your attention!)}}}
+#+macro: thank_you_slide_de    {{{thank_you_slide_with(Danke für Ihre Aufmerksamkeit!)}}}
