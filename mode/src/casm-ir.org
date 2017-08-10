@@ -1,0 +1,20 @@
+#+latex_header: \lstdefinelanguage{casm-ir} 
+#+latex_header: { basicstyle     = \ttfamily\scriptsize
+#+latex_header: , keywordstyle    = \color{black}\bfseries
+#+latex_header: , commentstyle    = \color{gray}\emph
+#+latex_header: , stringstyle     = \color{black}\bfseries
+#+latex_header: , numberstyle     = \color{black}\bfseries
+#+latex_header: , backgroundcolor = \color{gray!20}
+#+latex_header: , aboveskip       = 5mm
+#+latex_header: , captionpos      = b
+#+latex_header: , numbers         = left
+#+latex_header: , numbersep       = 5pt
+#+latex_header: , stepnumber      = 1
+#+latex_header: , firstnumber     = auto
+#+latex_header: , morecomment    = [l]{;;}
+#+latex_header: , morestring     = [b]"
+#+latex_header: , sensitive      = true, escapeinside={@(}{)@}
+#+latex_header: , morekeywords   = 
+#+latex_header:   { entry, exit, fork, merge, par, seq, location, lookup, update
+#+latex_header:   }
+#+latex_header: }

@@ -1,0 +1,95 @@
+
+#+latex_header: \lstdefinestyle{casm}
+#+latex_header: { basicstyle      = \ttfamily\small
+#+latex_header: , keywordstyle    = \color{black}\bfseries
+#+latex_header: , commentstyle    = \color{gray}\emph
+#+latex_header: , stringstyle     = \color{black}\bfseries
+#+latex_header: , numberstyle     = \color{black}\bfseries
+#+latex_header: , backgroundcolor = \color{gray!20}
+#+latex_header: , morecomment     = [l]{//}
+#+latex_header: , morecomment     = [l]{///}
+#+latex_header: , morecomment     = [s]{/*}{*/}
+#+latex_header: , morestring      = [b]"
+#+latex_header: , captionpos      = b
+#+latex_header: , numbers         = left
+#+latex_header: , numbersep       = 5pt
+#+latex_header: , stepnumber      = 1
+#+latex_header: , sensitive       = true, escapeinside={@(}{)@}
+#+latex_header: , morekeywords    = 
+#+latex_header:   { CASM, init
+#+latex_header:   , function, derived, rule, enum, controlled, symbolic, static
+#+latex_header:   , true, false, self, undef
+#+latex_header:   , Boolean, Integer, String, Rational, Bit, RuleRef
+#+latex_header:   , @
+#+latex_header:   , par, endpar, seq, endseq
+#+latex_header:   , skip, call, let, if, then, else, case, of, forall, in, iterate, do
+#+latex_header:   , assert, abort, assume, impossible, print, println, debug
+#+latex_header:   }
+#+latex_header: }
+
+#+latex_header: \lstdefinelanguage{casm-slides} 
+#+latex_header: { basicstyle     =\ttfamily\scriptsize
+#+latex_header: , keywordstyle   =\color{black}\bfseries
+#+latex_header: , commentstyle   =\color{gray}\emph
+#+latex_header: , stringstyle    =\color{black}\bfseries
+#+latex_header: , morecomment    =[l]{//}
+#+latex_header: , morecomment    =[l]{///}
+#+latex_header: , morecomment    =[s]{/*}{*/}
+#+latex_header: , morestring     =[b]"
+#+latex_header: , captionpos     =b,
+#+latex_header: , sensitive      =true, escapeinside={@(}{)@}
+#+latex_header: , morekeywords   = 
+#+latex_header:   { CASM, init
+#+latex_header:   , function, derived, rule, enum, controlled, symbolic, static
+#+latex_header:   , true, false, self, undef
+#+latex_header:   , Boolean, Integer, String, Self, RuleRef
+#+latex_header:   , @
+#+latex_header:   , par, endpar, seq, endseq
+#+latex_header:   , skip, call, let, if, then, else, case, of, forall, in, iterate, do
+#+latex_header:   , assert, abort, assume, impossible, print, println, debug
+#+latex_header:   }
+#+latex_header: }
+
+#+latex_header: \lstdefinelanguage{casm-el} 
+#+latex_header: { basicstyle     =\ttfamily\scriptsize
+#+latex_header: , keywordstyle   =\color{black}\bfseries
+#+latex_header: , commentstyle   =\color{gray}\emph
+#+latex_header: , stringstyle    =\color{black}\bfseries
+#+latex_header: , morecomment    =[l]{//}
+#+latex_header: , morecomment    =[l]{///}
+#+latex_header: , morecomment    =[s]{/*}{*/}
+#+latex_header: , morestring     =[b]"
+#+latex_header: , sensitive      =true, escapeinside={@(}{)@}
+#+latex_header: , morekeywords   = 
+#+latex_header:   { function, intrinsic, reference, par, statement, alloc, call
+#+latex_header:   }
+#+latex_header: }
+
+#+latex_header: \lstdefinelanguage{casm-c} 
+#+latex_header: { basicstyle     =\ttfamily\scriptsize
+#+latex_header: , keywordstyle   =\color{black}\bfseries
+#+latex_header: , commentstyle   =\color{gray}\emph
+#+latex_header: , stringstyle    =\color{black}\bfseries
+#+latex_header: , morecomment    =[l]{//}
+#+latex_header: , morecomment    =[l]{///}
+#+latex_header: , morecomment    =[s]{/*}{*/}
+#+latex_header: , morestring     =[b]"
+#+latex_header: , sensitive      =true, escapeinside={@(}{)@}
+#+latex_header: , morekeywords   = 
+#+latex_header:   { void, static, unit8_t, unit64_t, Update, inline, Integer
+#+latex_header:   }
+#+latex_header: }
+
+#+latex_header: \lstdefinelanguage{casm-vhdl} 
+#+latex_header: { basicstyle     =\ttfamily\scriptsize
+#+latex_header: , keywordstyle   =\color{black}\bfseries
+#+latex_header: , commentstyle   =\color{gray}\emph
+#+latex_header: , stringstyle    =\color{black}\bfseries
+#+latex_header: , morecomment    =[l]{--}
+#+latex_header: , morecomment    =[l]{---}
+#+latex_header: , morestring     =[b]"
+#+latex_header: , sensitive      =true, escapeinside={@(}{)@}
+#+latex_header: , morekeywords   = 
+#+latex_header:   { library, use, entity, is, port, map, end, architecture, of, signal, begin, if, then, else, process, elsif
+#+latex_header:   }
+#+latex_header: }

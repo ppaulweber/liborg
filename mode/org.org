@@ -1,0 +1,58 @@
+#
+#   Copyright (c) 2016-2017 Philipp Paulweber
+#   All rights reserved.
+#
+#   Developed by: Philipp Paulweber
+#                 https://github.com/ppaulweber/liborg
+#
+#   This file is part of liborg.
+#
+#   liborg is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   liborg is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with liborg. If not, see <http://www.gnu.org/licenses/>.
+#
+
+#+options: \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t
+#+startup: showall
+
+#+latex_header: \usepackage[utf8]{inputenc}
+#+latex_header: \usepackage{hyperref}
+#+latex_header: \usepackage{graphicx}
+#+latex_header: \usepackage{tabularx}
+#+latex_header: \usepackage{amsmath}
+#+latex_header: \usepackage{amssymb}
+
+#+latex_header: \usepackage{tikz}
+#+latex_header: \usetikzlibrary{shadows}
+#+latex_header: \usetikzlibrary{arrows}
+#+latex_header: \usetikzlibrary{shapes}
+#+latex_header: \usetikzlibrary{matrix}
+#+latex_header: \usetikzlibrary{positioning}
+#+latex_header: \usetikzlibrary{calc}
+#+latex_header: \usetikzlibrary{fit}
+#+latex_header: \usetikzlibrary{backgrounds}
+#+latex_header: \usetikzlibrary{decorations}
+#+latex_header: \usetikzlibrary{plotmarks}
+
+#+latex_header: \usepackage[absolute]{textpos}
+#+latex_header: \usepackage{multirow}
+#+latex_header: \usepackage{subfiles}
+#+latex_header: \usepackage{setspace}
+#+latex_header: \usepackage{listings}
+
+#+latex_header: \usepackage[printonlyused]{acronym}
+#+macro: acronym   \newacro{$1}{$2}
+
+#+macro: timestamp {{{modification-time(%A\, %d %B %Y at %T)}}}
+#+macro: isodate   {{{modification-time(%Y-%B-%d)}}}
+
+#+macro: draft     \begin{textblock}{200}(4.25,1.0)\textcolor{gray}{ Draft: generated at {{{timestamp}}} } \end{textblock}

@@ -1,0 +1,61 @@
+#
+#   Copyright (c) 2016-2017 Philipp Paulweber
+#   All rights reserved.
+#
+#   Developed by: Philipp Paulweber
+#                 https://github.com/ppaulweber/liborg
+#
+#   This file is part of liborg.
+#
+#   liborg is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   liborg is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with liborg. If not, see <http://www.gnu.org/licenses/>.
+#
+
+#+include: slide.org
+
+#+latex_class: slide-beamer
+#+latex_class_options: [presentation, smaller]
+
+#+options: H:2 toc:nil TeX:t LaTeX:t skip:nil d:nil todo:t pri:nil tags:not-in-toc
+#+columns: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
+#+startup: beamer
+#+beamer_frame_level: 2
+
+#+latex_header: \mode<beamer>{\usetheme[showpagenr]{boxes}}
+#+latex_header: \mode<beamer>{\usecolortheme{orchid}}
+#+latex_header: \useinnertheme{default}
+#+latex_header: \usefonttheme{default}
+
+#+latex_header: \setbeamertemplate{navigation symbols}{}
+#+latex_header: \setbeamertemplate{footline}[frame number]{}
+
+#+latex_header: \AtBeginSection[]{\begin{frame}<beamer>\frametitle{{Outline}}
+#+latex_header: \tableofcontents[currentsection]\end{frame}}
+
+#+latex_header: \setbeamercolor{normal text} {fg=black,bg=white}
+#+latex_header: \setbeamercolor{alerted text}{fg=red}
+#+latex_header: \setbeamercolor{example text}{fg=green!50!black}
+#+latex_header: \setbeamercolor{structure}{fg=blue}
+#+latex_header: \setbeamercolor{background canvas}{parent=normal text}
+#+latex_header: \setbeamercolor{background}{parent=background canvas}
+#+latex_header: \setbeamercolor{palette primary}{fg=yellow,bg=yellow}
+#+latex_header: \setbeamercolor{palette secondary}{use=structure,fg=structure}
+#+latex_header: \setbeamercolor{palette tertiary}{use=structure,fg=structure}
+#+latex_header: \setbeamerfont{framesubtitle}{size=\large}
+
+#+latex_header: \usepackage[numbers]{natbib}
+#+latex_header: \usepackage{bibentry}
+#+latex_header: \newcommand{\ignore}[1]{}
+#+latex_header: \newcommand{\nobibentry}[1]{{\let\nocite\ignore\bibentry{#1}}}
+#+latex_header: \newcommand{\bibfnamefont}[1]{#1}
+#+latex_header: \newcommand{\bibnamefont}[1]{#1}

@@ -1,0 +1,141 @@
+#
+#   Copyright (c) 2016-2017 Philipp Paulweber
+#   All rights reserved.
+#
+#   Developed by: Philipp Paulweber
+#                 https://github.com/ppaulweber/liborg
+#
+#   This file is part of liborg.
+#
+#   liborg is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   liborg is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with liborg. If not, see <http://www.gnu.org/licenses/>.
+#
+
+# -*- mode: makefile -*-
+
+ifndef ORG
+$(error ORG is not set)
+endif
+
+SRC=$(ORG)
+ifdef ORG_ARG
+ORG=$(ORG_ARG)
+endif
+
+SOURCE=$(ORG)
+TARGET=$(SOURCE).pdf
+ORGFILE=$(SOURCE).org
+
+ifeq ("$(wildcard $(ORGFILE))","")
+$(error $(ORGFILE) does not exist)
+endif
+
+ORG_PATH := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))..
+
+.PHONY: $(SOURCE).gen
+
+default: all
+
+all: main clean
+
+main: $(SOURCE).bbl $(SOURCE).gen
+	@echo "###---" $(ORG_PATH)
+	@echo "###---" $(ORGFILE)
+	@echo "###---" $(SOURCE)
+	grep "#+bibliography:" $(ORGFILE)
+
+	emacs $(ORGFILE) -l $(SOURCE).gen.el --batch -f `cat $(SOURCE).gen.ox` --kill
+
+	sed -i 's/\\maketitle$$//g' $(SOURCE).tex
+
+	TEXINPUTS=".:$(ORG_PATH):`cat $(SOURCE).gen.var`:`cat $(SOURCE).gen.var`/..::" \
+	pdflatex -draftmode -shell-escape -interaction nonstopmode $(SOURCE).tex
+
+	@(if [ `grep "#+bibliography:" $(ORGFILE)` ]; then  \
+	  @echo "###---" $(ORGFILE) has a bibliography\
+	  \
+	  grep "#+bibliography:" $(ORGFILE) | sed "s/.*:/\\\\bibdata{/g" | sed "s/$$/ }/g" | sed "s/\s//g" | cat >> $(SOURCE).aux; \
+	  \
+	  TEXINPUTS=".:$(ORG_PATH):`cat $(SOURCE).gen.var`:`cat $(SOURCE).gen.var`/..::" bibtex $(SOURCE).aux; \
+	  emacs $(ORGFILE) -l $(SOURCE).gen.el --batch -f `cat $(SOURCE).gen.ox` --kill; \
+	  \
+	  sed -i 's/\\maketitle$$//g' $(SOURCE).tex; \
+	  \
+	  TEXINPUTS=".:$(ORG_PATH):`cat $(SOURCE).gen.var`:`cat $(SOURCE).gen.var`/..::" pdflatex -draftmode -shell-escape -interaction nonstopmode $(SOURCE).tex; \
+	fi)
+
+	TEXINPUTS=".:$(ORG_PATH):`cat $(SOURCE).gen.var`:`cat $(SOURCE).gen.var`/..::" \
+	pdflatex -shell-escape -interaction nonstopmode $(SOURCE).tex
+
+
+edit: $(ORGFILE) $(SOURCE).gen
+	@emacs -nw $(ORGFILE) -l $(SOURCE).gen.el
+
+
+$(SOURCE).gen:
+	@grep "#+include:" $(ORGFILE) | grep "\.org" | head -n 1 | sed "s/#+include://g" | sed "s/\.org/.el/g" | sed "s/\s//g" > $@.el
+	@cat $@.el | sed "s/\.el//g" > $@.var
+	@(if [ "`cat $@.el`" ]; then  \
+	  echo "(load-file \""`cat $@.el`"\")" > $@.el; \
+	fi)
+	echo "org-latex-export-to-latex" > $@.ox
+	@(if [ "`grep \"slide/beamer\" $@.var`" ]; then  \
+	  echo "org-beamer-export-to-latex" > $@.ox; \
+	fi)
+
+
+$(SOURCE).bbl:
+ifeq ("$(wildcard $@)","")
+	@echo "" > $@
+endif
+
+bundle: $(SOURCE).gen bundler clean
+
+bundler:
+ifeq ("$(NAME)","")
+	$(error "no bundle name provided with 'NAME=...' parameter")
+endif
+	mkdir $(NAME)
+	cp $(SOURCE).tex $(NAME)/$(NAME).tex
+	cp $(SOURCE).pdf $(NAME).pdf
+	cp `cat $(SOURCE).gen.var`/*.cls $(NAME)/
+	echo "default:"                   > $(NAME)/Makefile
+	echo -e "\tpdflatex -draftmode -shell-escape -interaction nonstopmode $(NAME).tex" >> $(NAME)/Makefile
+	echo -e "\tpdflatex -shell-escape -interaction nonstopmode $(NAME).tex" >> $(NAME)/Makefile
+	(cd $(NAME)/; make)
+	(cd $(NAME)/; zip -r $(NAME).zip *)
+	mv $(NAME)/$(NAME).zip ./
+	rm -rf $(NAME)/*
+	rmdir $(NAME)
+
+clean:
+	@rm -vf $(SOURCE).gen.el
+	@rm -vf $(SOURCE).gen.ox
+	@rm -vf $(SOURCE).gen.var
+	@rm -vf $(SOURCE).tex~
+	@rm -vf $(SOURCE).aux
+	@rm -vf $(SOURCE).log
+	@rm -vf $(SOURCE).toc
+	@rm -vf $(SOURCE).out
+	@rm -vf $(SOURCE).pyg
+	@rm -vf $(SOURCE).bbl
+	@rm -vf $(SOURCE).blg
+	@rm -vf $(SOURCE).bcf
+	@rm -vf $(SOURCE).dvi
+	@rm -vf $(SOURCE).nav
+	@rm -vf $(SOURCE).snm
+	@rm -vf $(SOURCE).xwm
+	@rm -vf $(SOURCE).*.vrb
+
+clean-all:
+	@rm -vf $(SOURCE).tex
