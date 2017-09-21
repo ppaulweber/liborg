@@ -106,7 +106,7 @@
           (if (eq (length alist) 1)
               (format "\\todo{%s}" (nth 0 alist) desc)
             (if (eq (length alist) 2)
-		(let ((namelist (split-string path ","))
+		(let ((namelist (split-string (nth 0 alist) ","))
 		      )
 		  (format "\\todo[color=notecolor_%s]{\\textbf{%s:} %s}" (nth 0 alist) (nth 0 namelist) (nth 1 alist) desc)
 		  )
