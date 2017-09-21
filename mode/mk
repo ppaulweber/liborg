@@ -133,6 +133,7 @@ clean:
 	@rm -vf $(SOURCE).nav
 	@rm -vf $(SOURCE).snm
 	@rm -vf $(SOURCE).xwm
+	@rm -vf $(SOURCE).tdo
 	@rm -vf $(SOURCE).*.vrb
 
 clean-all:
