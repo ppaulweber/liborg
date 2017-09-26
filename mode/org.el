@@ -100,7 +100,7 @@
 
 (org-add-link-type "%" nil
   (lambda (path desc format)
-    (let ((alist (split-string path ":"))
+    (let ((alist (split-string path "::"))
           )
       (if (eq format 'latex)
           (if (eq (length alist) 1)
