@@ -40,26 +40,31 @@
 # 
 
 #+latex_header: \lstdefinelanguage{casm}
-#+latex_header: { basicstyle       = \ttfamily\scriptsize
-#+latex_header: , keywordstyle     = \color{black}\bfseries
-#+latex_header: , commentstyle     = \color{black!50}\emph
-#+latex_header: , stringstyle      = \color{black}\bfseries
-#+latex_header: , numberstyle      = \color{black}\tiny
-#+latex_header: , backgroundcolor  = \color{black!7.5}
-#+latex_header: , aboveskip        = 5mm
-#+latex_header: , belowskip        = 5mm
-#+latex_header: , captionpos       = b
-#+latex_header: , numbers          = left
-#+latex_header: , numbersep        = 5pt
-#+latex_header: , stepnumber       = 1
-#+latex_header: , firstnumber      = auto
-#+latex_header: , morecomment      = [l]{//}
-#+latex_header: , morecomment      = [l]{///}
-#+latex_header: , morecomment      = [s]{/*}{*/}
-#+latex_header: , morestring       = [b]"
-#+latex_header: , sensitive        = true
-#+latex_header: , escapeinside     = {@(}{)@}
-#+latex_header: , morekeywords     = 
+#+latex_header: { basicstyle         = \ttfamily\scriptsize
+#+latex_header: , keywordstyle       = \color{black}\bfseries
+#+latex_header: , commentstyle       = \color{black!50}\emph
+#+latex_header: , stringstyle        = \color{black}\bfseries
+#+latex_header: , numberstyle        = \color{black}\tiny
+#+latex_header: , backgroundcolor    = \color{black!7.5}
+#+latex_header: , aboveskip          = 5mm
+#+latex_header: , belowskip          = 5mm
+#+latex_header: , framexleftmargin   = 1mm
+#+latex_header: , framextopmargin    = 1mm
+#+latex_header: , framexbottommargin = 1mm
+#+latex_header: , framerule          = 0mm
+#+latex_header: , frame              = tb
+#+latex_header: , captionpos         = b
+#+latex_header: , numbers            = left
+#+latex_header: , numbersep          = 5pt
+#+latex_header: , stepnumber         = 1
+#+latex_header: , firstnumber        = auto
+#+latex_header: , morecomment        = [l]{//}
+#+latex_header: , morecomment        = [l]{///}
+#+latex_header: , morecomment        = [s]{/*}{*/}
+#+latex_header: , morestring         = [b]"
+#+latex_header: , sensitive          = true
+#+latex_header: , escapeinside       = {@(}{)@}
+#+latex_header: , morekeywords       = 
 #+latex_header:   { CASM, init
 #+latex_header:   , function, derived, rule, enumeration, controlled, symbolic, static
 #+latex_header:   , true, false, self, undef
