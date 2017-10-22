@@ -56,7 +56,7 @@ main: $(SOURCE).bbl $(SOURCE).gen
 
 	sed -i 's/\\maketitle$$//g' $(SOURCE).tex
 
-	TEXINPUTS=".:$(ORG_PATH):`cat $(SOURCE).gen.var`:`cat $(SOURCE).gen.var`/..::" \
+	TEXINPUTS=".:$(ORG_PATH):`cat $(SOURCE).gen.file`:`cat $(SOURCE).gen.path`::" \
 	pdflatex -draftmode -shell-escape -interaction nonstopmode $(SOURCE).tex
 
 	@(if [ "`grep \"#+bibliography:\" $(ORGFILE)`" ]; then  \
@@ -64,15 +64,17 @@ main: $(SOURCE).bbl $(SOURCE).gen
 	  \
 	  grep "#+bibliography:" $(ORGFILE) | sed "s/.*:/\\\\bibdata{/g" | sed "s/$$/ }/g" | sed "s/\s//g" | cat >> $(SOURCE).aux; \
 	  \
-	  TEXINPUTS=".:$(ORG_PATH):`cat $(SOURCE).gen.var`:`cat $(SOURCE).gen.var`/..::" bibtex $(SOURCE).aux; \
+	  TEXINPUTS=".:$(ORG_PATH):`cat $(SOURCE).gen.file`:`cat $(SOURCE).gen.path`::" \
+	  bibtex $(SOURCE).aux; \
 	  emacs $(ORGFILE) -l $(SOURCE).gen.el --batch -f `cat $(SOURCE).gen.ox` --kill; \
 	  \
 	  sed -i 's/\\maketitle$$//g' $(SOURCE).tex; \
 	  \
-	  TEXINPUTS=".:$(ORG_PATH):`cat $(SOURCE).gen.var`:`cat $(SOURCE).gen.var`/..::" pdflatex -draftmode -shell-escape -interaction nonstopmode $(SOURCE).tex; \
+	  TEXINPUTS=".:$(ORG_PATH):`cat $(SOURCE).gen.file`:`cat $(SOURCE).gen.path`::" \
+	  pdflatex -draftmode -shell-escape -interaction nonstopmode $(SOURCE).tex; \
 	fi)
 
-	TEXINPUTS=".:$(ORG_PATH):`cat $(SOURCE).gen.var`:`cat $(SOURCE).gen.var`/..::" \
+	TEXINPUTS=".:$(ORG_PATH):`cat $(SOURCE).gen.file`:`cat $(SOURCE).gen.path`::" \
 	pdflatex -shell-escape -interaction nonstopmode $(SOURCE).tex
 
 
@@ -82,12 +84,13 @@ edit: $(ORGFILE) $(SOURCE).gen
 
 $(SOURCE).gen:
 	@grep "#+include:" $(ORGFILE) | grep "\.org" | head -n 1 | sed "s/#+include://g" | sed "s/\.org/.el/g" | sed "s/\s//g" > $@.el
-	@cat $@.el | sed "s/\.el//g" > $@.var
+	@cat $@.el | sed "s/\.el//g" > $@.file
+	@dirname `cat $@.file` > $@.path
 	@(if [ "`cat $@.el`" ]; then  \
 	  echo "(load-file \""`cat $@.el`"\")" > $@.el; \
 	fi)
 	echo "org-latex-export-to-latex" > $@.ox
-	@(if [ "`grep \"slide/beamer\" $@.var`" ]; then  \
+	@(if [ "`grep \"slide/beamer\" $@.file`" ]; then  \
 	  echo "org-beamer-export-to-latex" > $@.ox; \
 	fi)
 
@@ -106,7 +109,7 @@ endif
 	mkdir $(NAME)
 	cp $(SOURCE).tex $(NAME)/$(NAME).tex
 	cp $(SOURCE).pdf $(NAME).pdf
-	cp `cat $(SOURCE).gen.var`/*.cls $(NAME)/
+	cp `cat $(SOURCE).gen.file`/*.cls $(NAME)/
 	echo "default:"                   > $(NAME)/Makefile
 	echo -e "\tpdflatex -draftmode -shell-escape -interaction nonstopmode $(NAME).tex" >> $(NAME)/Makefile
 	echo -e "\tpdflatex -shell-escape -interaction nonstopmode $(NAME).tex" >> $(NAME)/Makefile
@@ -119,7 +122,8 @@ endif
 clean:
 	@rm -vf $(SOURCE).gen.el
 	@rm -vf $(SOURCE).gen.ox
-	@rm -vf $(SOURCE).gen.var
+	@rm -vf $(SOURCE).gen.file
+	@rm -vf $(SOURCE).gen.path
 	@rm -vf $(SOURCE).tex~
 	@rm -vf $(SOURCE).aux
 	@rm -vf $(SOURCE).log
