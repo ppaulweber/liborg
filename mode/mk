@@ -65,6 +65,7 @@ main: $(SOURCE).bbl $(SOURCE).gen
 	  grep "#+bibliography:" $(ORGFILE) | sed "s/.*:/\\\\bibdata{/g" | sed "s/$$/ }/g" | sed "s/\s//g" | cat >> $(SOURCE).aux; \
 	  \
 	  TEXINPUTS=".:$(ORG_PATH):`cat $(SOURCE).gen.file`:`cat $(SOURCE).gen.path`::" \
+	  BSTINPUTS=".:$(ORG_PATH):`cat $(SOURCE).gen.file`:`cat $(SOURCE).gen.path`::" \
 	  bibtex $(SOURCE).aux; \
 	  emacs $(ORGFILE) -l $(SOURCE).gen.el --batch -f `cat $(SOURCE).gen.ox` --kill; \
 	  \
