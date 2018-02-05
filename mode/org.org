@@ -52,6 +52,7 @@
 #+latex_header: \usepackage{tikz}
 #+latex_header: \usetikzlibrary{shadows}
 #+latex_header: \usetikzlibrary{arrows}
+#+latex_header: \usetikzlibrary{arrows.meta}
 #+latex_header: \usetikzlibrary{shapes}
 #+latex_header: \usetikzlibrary{matrix}
 #+latex_header: \usetikzlibrary{positioning}
