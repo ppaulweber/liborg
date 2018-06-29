@@ -39,8 +39,22 @@
 ;   statement from your version.
 ;
 
+
+;; enable languages for in-buffer code evaluation
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((latex . t)
+   (python . t)
+   (R . t)
+   )
+ )
+
+
 (setq org-latex-with-hyperref nil)
+
+
 (setq org-latex-listings 'listings)
+
 
 (org-add-link-type "$" nil
   (lambda (path desc format)
@@ -156,16 +170,6 @@
            )))
 
 
-;; (defun org-mode-reftex-setup ()
-;;   (load-library "reftex")
-;;   (and (buffer-file-name)
-;;        (file-exists-p (buffer-file-name))
-;;        (reftex-parse-all))
-;;   (define-key org-mode-map (kbd "C-c )") 'reftex-citation)
-;;   )
-;; (add-hook 'org-mode-hook 'org-mode-reftex-setup)
-
-
 (defun org-ref-cite-link-format (keyword desc format)
   (cond
    ((eq format 'html) (format "(<cite>%s</cite>)" path))
@@ -181,6 +185,15 @@
 
 ;; (defun org-mode-reftex-setup ()
 ;;   (load-library "reftex")
+;;   (and (buffer-file-name)
+;;        (file-exists-p (buffer-file-name))
+;;        (reftex-parse-all))
+;;   (define-key org-mode-map (kbd "C-c )") 'reftex-citation)
+;;   )
+;; (add-hook 'org-mode-hook 'org-mode-reftex-setup)
+
+;; (defun org-mode-reftex-setup ()
+;;   (load-library "reftex")
 ;;   (and (buffer-file-name) (file-exists-p (buffer-file-name))
 ;;        (progn
 ;;          disk
@@ -193,9 +206,7 @@
 ;;   )
 
 
-
-
-                                        ;(add-to-list 'org-export-latex-emphasis-alist '( ("?" "\\cite{%s}" nil) ) )
+;(add-to-list 'org-export-latex-emphasis-alist '( ("?" "\\cite{%s}" nil) ) )
 
 ;; (custom-set-variables
 ;;  '(org-emphasis-alist
