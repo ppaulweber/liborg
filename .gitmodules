@@ -1,3 +1,6 @@
 [submodule "lib/stdhl"]
 	path = lib/stdhl
 	url = git@github.com:ppaulweber/libstdhl
+[submodule "mode/paper/tpj/programming"]
+	path = mode/paper/tpj/programming
+	url = https://github.com/programming-journal/programming
