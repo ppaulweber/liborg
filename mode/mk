@@ -44,11 +44,17 @@ ORG_PATH := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))..
 
 .PHONY: $(SOURCE).gen
 
-default: all
 
-all: main clean
+default: pdf
 
-main: $(SOURCE).bbl $(SOURCE).gen
+
+pdf: document clean
+
+
+all: execute document clean
+
+
+document: $(SOURCE).bbl $(SOURCE).gen
 	@echo "###---" $(ORG_PATH)
 	@echo "###---" $(SOURCE)
 
@@ -83,6 +89,10 @@ edit: $(ORGFILE) $(SOURCE).gen
 	@emacs -nw $(ORGFILE) -l $(SOURCE).gen.el
 
 
+execute:  $(SOURCE).gen
+	@emacs $(ORGFILE) -l $(SOURCE).gen.el --batch -f org-babel-execute-buffer --kill
+
+
 $(SOURCE).gen:
 	@grep "#+include:" $(ORGFILE) | grep "\.org" | head -n 1 | sed "s/#+include://g" | sed "s/\.org/.el/g" | sed "s/\s//g" > $@.el
 	@cat $@.el | sed "s/\.el//g" > $@.file
@@ -101,7 +111,9 @@ ifeq ("$(wildcard $@)","")
 	@echo "" > $@
 endif
 
+
 bundle: $(SOURCE).gen bundler clean
+
 
 bundler:
 ifeq ("$(NAME)","")
@@ -119,6 +131,7 @@ endif
 	mv $(NAME)/$(NAME).zip ./
 	rm -rf $(NAME)/*
 	rmdir $(NAME)
+
 
 clean:
 	@rm -vf $(SOURCE).gen.el
@@ -140,6 +153,7 @@ clean:
 	@rm -vf $(SOURCE).xwm
 	@rm -vf $(SOURCE).tdo
 	@rm -vf $(SOURCE).*.vrb
+
 
 clean-all:
 	@rm -vf $(SOURCE).tex
