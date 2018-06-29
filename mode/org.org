@@ -42,7 +42,7 @@
 #+options: \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t
 #+startup: showall
 
-#+latex_header: \usepackage[utf8]{inputenc}
+#+latex_header: \usepackage{inputenc}
 #+latex_header: \usepackage{hyperref}
 #+latex_header: \usepackage{graphicx}
 #+latex_header: \usepackage{tabularx}
