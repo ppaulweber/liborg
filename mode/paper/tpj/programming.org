@@ -43,5 +43,7 @@
 
 #+latex_class: paper-tpj-programming
 
-#+latex_class_options: [english,submission]
-#+latex_class_options: [english]
+# latex_class_options: [submission]
+# latex_class_options: [phase=submission]
+# latex_class_options: [phase=final]
+# latex_class_options: [crc]
