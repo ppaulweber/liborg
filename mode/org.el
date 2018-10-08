@@ -49,15 +49,26 @@
    )
  )
 
-
 (setq org-latex-with-hyperref nil)
-
-
 (setq org-latex-listings 'listings)
 
+;; (org-link-set-parameters
+;;  "red"
+;;  :follow (lambda (path) (message "You clicked me."))
+;;  :export (lambda (path desc backend)
+;;            (cond
+;;             ((eq 'html backend)
+;;              (format "<font color=\"red\">%s</font>"
+;;                      (or desc path)))))
+;;  :face '(:foreground "red")
+;;  :help-echo "Click me for a message.")
 
-(org-add-link-type "$" nil
-  (lambda (path desc format)
+;; (if (fboundp 'org-link-set-parameters)
+;; )
+
+
+(org-add-link-type "%" nil 
+(lambda (path desc format)
     (let ((alist (split-string path ":"))
           )
       (if (eq format 'latex)
@@ -112,44 +123,43 @@
   )
 
 
-(org-add-link-type "@" nil
-  (lambda (path desc format)
-    (let ((alist (split-string path ":"))
-          )
-      (if (eq format 'latex)
-          (if (eq (length alist) 1)
-              (format "\\ref{%s}" (nth 0 alist) desc)
-            (if (eq (length alist) 2)
-                (format "%s\\ref{%s}" (nth 0 alist) (nth 1 alist) desc)
-	      (error "unsupported 'ref' markup!")
-	      )
-	    )
-        )
-      )
-    )
-  )
+;; (org-add-link-type "%" nil
+;;   (lambda (path desc format)
+;;     (let ((alist (split-string path ":"))
+;;           )
+;;       (if (eq format 'latex)
+;;           (if (eq (length alist) 1)
+;;               (format "\\ref{%s}" (nth 0 alist) desc)
+;;             (if (eq (length alist) 2)
+;;                 (format "%s\\ref{%s}" (nth 0 alist) (nth 1 alist) desc)
+;; 	      (error "unsupported 'ref' markup!")
+;; 	      )
+;; 	    )
+;;         )
+;;       )
+;;     )
+;;   )
 
 
-(org-add-link-type "%" nil
-  (lambda (path desc format)
-    (let ((alist (split-string path "::"))
-          )
-      (if (eq format 'latex)
-          (if (eq (length alist) 1)
-              (format "\\todo{%s}" (nth 0 alist) desc)
-            (if (eq (length alist) 2)
-		(let ((namelist (split-string (nth 0 alist) ","))
-		      )
-		  (format "\\todo[color=notecolor_%s]{\\textbf{%s:} %s}" (nth 0 alist) (nth 0 namelist) (nth 1 alist) desc)
-		  )
-	      (error "unsupported 'todo' markup!")
-	      )
-	    )
-	)
-      )
-    )
-  )
-
+;; (org-add-link-type "???" nil
+;;   (lambda (path desc format)
+;;     (let ((alist (split-string path "::"))
+;;           )
+;;       (if (eq format 'latex)
+;;           (if (eq (length alist) 1)
+;;               (format "\\todo{%s}" (nth 0 alist) desc)
+;;             (if (eq (length alist) 2)
+;; 		(let ((namelist (split-string (nth 0 alist) ","))
+;; 		      )
+;; 		  (format "\\todo[color=notecolor_%s]{\\textbf{%s:} %s}" (nth 0 alist) (nth 0 namelist) (nth 1 alist) desc)
+;; 		  )
+;; 	      (error "unsupported 'todo' markup!")
+;; 	      )
+;; 	    )
+;; 	)
+;;       )
+;;     )
+;;   )
 
 
 (setq org-confirm-babel-evaluate nil)
@@ -170,18 +180,20 @@
            )))
 
 
-(defun org-ref-cite-link-format (keyword desc format)
-  (cond
-   ((eq format 'html) (format "(<cite>%s</cite>)" path))
-   ((eq format 'latex)
-    (concat "$:" (when desc (format "[%s]" desc)) ""
-            (mapconcat (lambda (key) key) (org-ref-split-and-strip-string keyword) ",")
-            ""))))
+;; (defun org-ref-cite-link-format (keyword desc format)
+;;   (cond
+;;    ((eq format 'html) (format "(<cite>%s</cite>)" path))
+;;    ((eq format 'latex)
+;;     (concat "$:" (when desc (format "[%s]" desc)) ""
+;;             (mapconcat (lambda (key) key) (org-ref-split-and-strip-string keyword) ",")
+;;             ""))))
 
-(org-add-link-type
- "cite"
- 'org-ref-cite-onclick-minibuffer-menu ;; clicking function
- 'org-ref-cite-link-format) ;; formatting function
+;; (org-add-link-type
+;;  "cite"
+;;  'org-ref-cite-onclick-minibuffer-menu ;; clicking function
+;;  'org-ref-cite-link-format) ;; formatting function
+
+
 
 ;; (defun org-mode-reftex-setup ()
 ;;   (load-library "reftex")
