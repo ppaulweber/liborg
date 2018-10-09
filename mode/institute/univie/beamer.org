@@ -85,6 +85,11 @@
 #+latex_header: \hypersetup{colorlinks,linkcolor=,urlcolor=univie}
 #+latex_header: \setbeamertemplate{headline}{ \hfill \parbox{32.5mm}{ \vspace{2.5mm} \includegraphics[height=8.0mm]{mode/institute/univie/img/logo.eps} \vspace{-8.0mm} } }
 
+#+latex: \addtobeamertemplate{frametitle}{}{%
+#+latex: \begin{tikzpicture}[remember picture,overlay]
+#+latex: \node[anchor=north east,xshift=3.25pt,yshift=0.75pt] at (current page.north east) { \colorbox{white}{ \includegraphics[height=8.0mm]{mode/institute/univie/img/logo.eps} } };
+#+latex: \end{tikzpicture}}
+
 #+beamer_header: \institute[INST]{\univieAddress}
 
 #+latex_header: \newcommand{\coverSlide}[2]{ \vfill \begin{tikzpicture}[remember picture, overlay, background rectangle/.style={fill=black!75}, show background rectangle] \node (COVER) at (.5\linewidth,0) {\includegraphics[#1]{#2}}; \end{tikzpicture} \vfill }
