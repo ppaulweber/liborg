@@ -87,6 +87,22 @@
     )
   )
 
+(org-add-link-type "r" nil
+  (lambda (path desc format)
+    (let ((alist (split-string path ":"))
+          )
+      (if (eq format 'latex)
+          (if (eq (length alist) 1)
+              (format "\\ref{%s}" (nth 0 alist) desc)
+            (if (eq (length alist) 2)
+                (format "%s\\ref{%s}" (nth 0 alist) (nth 1 alist) desc)
+	      (error "unsupported 'ref' markup!")
+	      )
+	    )
+        )
+      )
+    )
+  )
 
 (setq org-paper-acro (make-hash-table :test 'equal))
 
@@ -121,25 +137,6 @@
       )))
     )
   )
-
-
-;; (org-add-link-type "%" nil
-;;   (lambda (path desc format)
-;;     (let ((alist (split-string path ":"))
-;;           )
-;;       (if (eq format 'latex)
-;;           (if (eq (length alist) 1)
-;;               (format "\\ref{%s}" (nth 0 alist) desc)
-;;             (if (eq (length alist) 2)
-;;                 (format "%s\\ref{%s}" (nth 0 alist) (nth 1 alist) desc)
-;; 	      (error "unsupported 'ref' markup!")
-;; 	      )
-;; 	    )
-;;         )
-;;       )
-;;     )
-;;   )
-
 
 ;; (org-add-link-type "???" nil
 ;;   (lambda (path desc format)
