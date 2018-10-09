@@ -60,7 +60,8 @@ document: $(SOURCE).bbl $(SOURCE).gen
 
 	emacs $(ORGFILE) -l $(SOURCE).gen.el --batch -f `cat $(SOURCE).gen.ox` --kill
 
-	sed -i 's/\\maketitle$$//g' $(SOURCE).tex
+	mv -f $(SOURCE).tex $(SOURCE).gen.tex
+	cat $(SOURCE).gen.tex | sed 's/\\maketitle$$//g' > $(SOURCE).tex
 
 	TEXINPUTS=".:$(ORG_PATH):`cat $(SOURCE).gen.file`:`cat $(SOURCE).gen.path`::" \
 	pdflatex -draftmode -shell-escape -interaction nonstopmode $(SOURCE).tex
@@ -75,7 +76,8 @@ document: $(SOURCE).bbl $(SOURCE).gen
 	  bibtex $(SOURCE).aux; \
 	  emacs $(ORGFILE) -l $(SOURCE).gen.el --batch -f `cat $(SOURCE).gen.ox` --kill; \
 	  \
-	  sed -i 's/\\maketitle$$//g' $(SOURCE).tex; \
+	  mv -f $(SOURCE).tex $(SOURCE).gen.tex; \
+	  cat $(SOURCE).gen.tex | sed 's/\\maketitle$$//g' > $(SOURCE).tex; \
 	  \
 	  TEXINPUTS=".:$(ORG_PATH):`cat $(SOURCE).gen.file`:`cat $(SOURCE).gen.path`::" \
 	  pdflatex -draftmode -shell-escape -interaction nonstopmode $(SOURCE).tex; \
@@ -98,7 +100,7 @@ $(SOURCE).gen:
 	@cat $@.el | sed "s/\.el//g" > $@.file
 	@dirname `cat $@.file` > $@.path
 	@(if [ "`cat $@.el`" ]; then  \
-	  echo "(load-file \""`cat $@.el`"\")" > $@.el; \
+	  echo "(load-file \""`cat $@.el | sed 's/[[:space:]]*//g'`"\")" > $@.el; \
 	fi)
 	echo "org-latex-export-to-latex" > $@.ox
 	@(if [ "`grep \"slide/beamer\" $@.file`" ]; then  \
@@ -138,6 +140,7 @@ clean:
 	@rm -vf $(SOURCE).gen.ox
 	@rm -vf $(SOURCE).gen.file
 	@rm -vf $(SOURCE).gen.path
+	@rm -vf $(SOURCE).gen.tex
 	@rm -vf $(SOURCE).tex~
 	@rm -vf $(SOURCE).aux
 	@rm -vf $(SOURCE).log
