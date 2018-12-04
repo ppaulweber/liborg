@@ -1,0 +1,10 @@
+
+# http://www.acm.org/publications/proceedings-template
+
+# ACM SIG Proceedings Templates
+# https://www.acm.org/publications/proceedings-template-16dec2016
+
+#+include: ../../paper.org
+
+#+latex_class: paper-acm-sig-proceeding
+#+latex_class_options: []
