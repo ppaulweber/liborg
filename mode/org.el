@@ -158,7 +158,6 @@
 ;;     )
 ;;   )
 
-
 (setq org-confirm-babel-evaluate nil)
 
 
@@ -176,7 +175,6 @@
              )
            )))
 
-
 ;; (defun org-ref-cite-link-format (keyword desc format)
 ;;   (cond
 ;;    ((eq format 'html) (format "(<cite>%s</cite>)" path))
@@ -189,6 +187,18 @@
 ;;  "cite"
 ;;  'org-ref-cite-onclick-minibuffer-menu ;; clicking function
 ;;  'org-ref-cite-link-format) ;; formatting function
+
+
+
+(require 'cl)
+(defun delete-org-comments (backend)
+  (loop for comment in (reverse (org-element-map (org-element-parse-buffer)
+				    'comment 'identity))
+	do
+	(setf (buffer-substring (org-element-property :begin comment)
+				(org-element-property :end comment))
+              "")))
+(add-hook 'org-export-before-parsing-hook 'delete-org-comments)
 
 
 
