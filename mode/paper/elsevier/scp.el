@@ -43,7 +43,7 @@
 
 (unless (boundp 'org-latex-classes)(setq org-latex-classes nil))
 (add-to-list 'org-latex-classes
-'("paper-elsevier-scico"
+'("paper-elsevier-scp"
 "\\documentclass{elsarticle}
 [NO-DEFAULT-PACKAGES]
 [NO-PACKAGES]

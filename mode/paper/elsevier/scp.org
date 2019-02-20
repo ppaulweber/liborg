@@ -41,6 +41,6 @@
 
 #+include: ../paper.org
 
-#+latex_class: paper-elsevier-scico
+#+latex_class: paper-elsevier-scp
 
 # latex_class_options: []
