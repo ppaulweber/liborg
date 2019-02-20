@@ -48,13 +48,28 @@ ORG_PATH := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))..
 default: pdf
 
 
-pdf: document clean
+pdf: ${TARGET} clean
 
 
-all: execute document clean
+all: execute pdf
 
 
-document: $(SOURCE).bbl $(SOURCE).gen
+${TARGET}: ${ORGFILE}
+ifeq ("$(wildcard $(SOURCE).bbl)","")
+	@echo "" > $(SOURCE).bbl
+endif
+
+	@grep "#+include:" $(ORGFILE) | grep "\.org" | head -n 1 | sed "s/#+include://g" | sed "s/\.org/.el/g" | sed "s/\s//g" > $(SOURCE).gen.el
+	@cat $(SOURCE).gen.el | sed "s/\.el//g" > $(SOURCE).gen.file
+	@dirname `cat $(SOURCE).gen.file` > $(SOURCE).gen.path
+	@(if [ "`cat $(SOURCE).gen.el`" ]; then  \
+	  echo "(load-file \""`cat $(SOURCE).gen.el | sed 's/[[:space:]]*//g'`"\")" > $(SOURCE).gen.el; \
+	fi)
+	echo "org-latex-export-to-latex" > $(SOURCE).gen.ox
+	@(if [ "`grep \"slide/beamer\" $(SOURCE).gen.file`" ]; then  \
+	  echo "org-beamer-export-to-latex" > $(SOURCE).gen.ox; \
+	fi)
+
 	@echo "###---" $(ORG_PATH)
 	@echo "###---" $(SOURCE)
 
@@ -89,7 +104,10 @@ document: $(SOURCE).bbl $(SOURCE).gen
 
 edit: $(ORGFILE) $(SOURCE).gen
 	@emacs -nw $(ORGFILE) -l $(SOURCE).gen.el
-
+	@rm -vf $(SOURCE).gen.el
+	@rm -vf $(SOURCE).gen.ox
+	@rm -vf $(SOURCE).gen.file
+	@rm -vf $(SOURCE).gen.path
 
 execute:  $(SOURCE).gen
 	@emacs $(ORGFILE) -l $(SOURCE).gen.el --batch -f org-babel-execute-buffer --kill
@@ -156,6 +174,7 @@ clean:
 	@rm -vf $(SOURCE).xwm
 	@rm -vf $(SOURCE).tdo
 	@rm -vf $(SOURCE).*.vrb
+	@rm -vf $(SOURCE).spl
 
 
 clean-all:
