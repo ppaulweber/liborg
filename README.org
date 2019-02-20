@@ -1,5 +1,5 @@
 # 
-#   Copyright (C) 2014-2018 Philipp Paulweber
+#   Copyright (C) 2014-2019 Philipp Paulweber
 #   All rights reserved.
 # 
 #   Developed by: Philipp Paulweber
@@ -103,7 +103,7 @@ with an additional permission ("GPL Linking Exception").
 
 #+begin_src
 
-Copyright (C) 2014-2018 Philipp Paulweber
+Copyright (C) 2014-2019 Philipp Paulweber
 All rights reserved.
 
 Developed by: Philipp Paulweber
