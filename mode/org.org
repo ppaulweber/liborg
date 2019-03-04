@@ -48,6 +48,7 @@
 #+latex_header: \usepackage{tabularx}
 #+latex_header: \usepackage{amsmath}
 #+latex_header: \usepackage{amssymb}
+#+latex_header: \usepackage{mathtools}
 
 #+latex_header: \usepackage{tikz}
 #+latex_header: \usetikzlibrary{shadows}
@@ -63,10 +64,14 @@
 #+latex_header: \usetikzlibrary{plotmarks}
 
 #+latex_header: \usepackage[absolute]{textpos}
+#+latex_header: \usepackage[inline]{enumitem}
 #+latex_header: \usepackage{multirow}
 #+latex_header: \usepackage{subfiles}
 #+latex_header: \usepackage{setspace}
 #+latex_header: \usepackage{listings}
+#+latex_header: \usepackage{subcaption}
+
+
 
 #+latex_header: \usepackage[printonlyused]{acronym}
 #+macro: acronym   \newacro{$1}{$2}
