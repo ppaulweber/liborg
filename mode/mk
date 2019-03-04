@@ -175,7 +175,13 @@ clean:
 	@rm -vf $(SOURCE).tdo
 	@rm -vf $(SOURCE).*.vrb
 	@rm -vf $(SOURCE).spl
-
+	@rm -vf $(SOURCE).acn
+	@rm -vf $(SOURCE).glo
+	@rm -vf $(SOURCE).idx
+	@rm -vf $(SOURCE).ist
+	@rm -vf $(SOURCE).loa
+	@rm -vf $(SOURCE).lof
+	@rm -vf $(SOURCE).lot
 
 clean-all:
 	@rm -vf $(SOURCE).tex
