@@ -63,7 +63,7 @@
 #+latex_header: \usetikzlibrary{decorations}
 #+latex_header: \usetikzlibrary{plotmarks}
 
-#+latex_header: \usepackage[absolute]{textpos}
+#+latex_header: \usepackage[absolute,overlay]{textpos}
 #+latex_header: \usepackage[inline]{enumitem}
 #+latex_header: \usepackage{multirow}
 #+latex_header: \usepackage{subfiles}
@@ -78,5 +78,6 @@
 
 #+macro: timestamp {{{modification-time(%A\, %d %B %Y at %T)}}}
 #+macro: isodate   {{{modification-time(%Y-%B-%d)}}}
+#+macro: year      {{{modification-time(%Y)}}}
 
 #+macro: draft     \begin{textblock}{200}(4.25,1.0)\textcolor{gray}{ Draft: generated at {{{timestamp}}} } \end{textblock}
