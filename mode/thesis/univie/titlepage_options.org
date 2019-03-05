@@ -1,0 +1,41 @@
+#+macro: prefix              [prefix]
+#+macro: postfix             [postfix]
+#+macro: degree              [degree]
+
+#+macro: study_id            [study_id]
+#+macro: study_de            [study_de]
+#+macro: study_en            [study_en]
+#+macro: field_de            [field_de]
+#+macro: field_en            [field_en]
+#+macro: supervisor          [supervisor]
+
+#+macro: thesis_label_de     DISSERTATION
+#+macro: thesis_label_en     DOCTORAL THESIS
+#+macro: title_label_de      Titel der Dissertation
+#+macro: title_label_en      Title of the Doctoral Thesis
+#+macro: author_label_de     verfasst von
+#+macro: author_label_en     submitted by
+#+macro: degree_label_de     angestrebter akademischer Grad
+#+macro: degree_label_en     in partial fulfilment of the requirements for the degree of
+#+macro: location_de         Wien
+#+macro: location_en         Vienna
+#+macro: study_label_de      Studienkennzahl lt. Studienblatt
+#+macro: study_label_en      Degree programme code as it appears on the student record sheet
+#+macro: field_label_de      Dissertationsgebiet lt. Studienblatt
+#+macro: field_label_en      Field of study as it appears on the student record sheet
+#+macro: supervisor_label_de Betreut von
+#+macro: supervisor_label_en Supervisor
+
+#+latex_header: \usepackage[pages=some]{background}
+#+latex_header: \backgroundsetup
+#+latex_header: { scale=1
+#+latex_header: , angle=0
+#+latex_header: , opacity=1
+#+latex_header: , contents=
+#+latex_header:   { \includegraphics
+#+latex_header:     [ width=\paperwidth
+#+latex_header:     , height=\paperheight
+#+latex_header:     , keepaspectratio
+#+latex_header:     ]{univie/titlepage.pdf}
+#+latex_header:   }
+#+latex_header: }

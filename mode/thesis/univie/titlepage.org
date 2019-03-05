@@ -1,0 +1,58 @@
+#+include: titlepage_options.org
+
+#+latex: \BgThispage
+#+latex: \thispagestyle{empty}
+#+latex: \selectlanguage{ngerman}
+#+latex: \fontfamily{phv}\selectfont
+
+#+latex: \begin{textblock*}{202mm}(8mm,64.75mm) \noindent \centering\Huge\bfseries
+{{{thesis_label_de}}} / {{{thesis_label_en}}}
+#+latex: \end{textblock*}
+
+#+latex: \begin{textblock*}{202mm}(8mm,91.125mm) \noindent \centering
+{{{title_label_de}}} / {{{title_label_en}}}
+#+latex: \end{textblock*}
+
+#+latex: \begin{textblock*}{202mm}(8mm,98.625mm) \noindent \centering\LARGE
+"`{{{title}}}"'
+#+latex: \end{textblock*}
+
+#+latex: \begin{textblock*}{202mm}(8mm,131.25mm) \noindent \centering
+{{{author_label_de}}} / {{{author_label_en}}}
+#+latex: \end{textblock*}
+
+#+latex: \begin{textblock*}{202mm}(8mm,138.25mm) \noindent \centering\Large
+{{{prefix}}} {{{author}}}{{{postfix}}}
+#+latex: \end{textblock*}
+
+#+latex: \begin{textblock*}{202mm}(8mm,170.75mm) \noindent \centering
+{{{degree_label_de}}} / {{{degree_label_en}}}
+#+latex: \end{textblock*}
+
+#+latex: \begin{textblock*}{202mm}(8mm,177.75mm) \noindent \centering\Large
+{{{study_de}}}
+#+latex: \end{textblock*}
+
+#+latex: \begin{textblock*}{185mm}(25mm,205.25mm) \noindent
+{{{location_de}}}, {{{year}}} / {{{location_en}}} {{{year}}}
+#+latex: \end{textblock*}
+
+#+latex: \begin{textblock*}{185mm}(25mm,227.5mm)\hspace{-8.875mm}\begin{minipage}{\columnwidth} \small
+#+attr_latex: :align p{90mm}p{85mm}
+| {{{study_label_de}}} / | {{{study_id}}} |
+| {{{study_label_en}}}:  |                    |
+#+latex: \end{minipage}\end{textblock*}
+
+#+latex: \begin{textblock*}{185mm}(25mm,242.25mm)\hspace{-8.875mm}\begin{minipage}{\columnwidth} \small
+#+attr_latex: :align p{90mm}p{85mm}
+| {{{field_label_de}}} / | {{{field_de}}} / |
+| {{{field_label_en}}}:  | {{{field_en}}}   |
+#+latex: \end{minipage}\end{textblock*}
+
+#+latex: \begin{textblock*}{185mm}(25mm,252.875mm)\hspace{-8.875mm}\begin{minipage}{\columnwidth} \small
+#+attr_latex: :align p{90mm}p{85mm}
+| {{{supervisor_label_de}}} / {{{supervisor_label_en}}}: | {{{supervisor}}} |
+#+latex: \end{minipage}\end{textblock*}
+
+#+latex: $~$
+#+latex: \cleardoublepage
