@@ -1,6 +1,5 @@
 #+include: titlepage_options.org
 
-#+latex: \BgThispage
 #+latex: \thispagestyle{empty}
 #+latex: \selectlanguage{english}
 #+latex: \fontfamily{phv}\selectfont

@@ -1,6 +1,5 @@
 #+include: titlepage_options.org
 
-#+latex: \BgThispage
 #+latex: \thispagestyle{empty}
 #+latex: \selectlanguage{ngerman}
 #+latex: \fontfamily{phv}\selectfont

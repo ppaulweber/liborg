@@ -1,0 +1,15 @@
+#+latex_header: \usepackage[pages=some]{background}
+#+latex_header: \backgroundsetup
+#+latex_header: { scale=1
+#+latex_header: , angle=0
+#+latex_header: , opacity=1
+#+latex_header: , contents=
+#+latex_header:   { \includegraphics
+#+latex_header:     [ width=\paperwidth
+#+latex_header:     , height=\paperheight
+#+latex_header:     , keepaspectratio
+#+latex_header:     ]{mode/thesis/univie/titlepage.pdf}
+#+latex_header:   }
+#+latex_header: }
+
+#+latex: \BgThispage
