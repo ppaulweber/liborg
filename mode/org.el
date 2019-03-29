@@ -52,6 +52,10 @@
 (setq org-latex-with-hyperref nil)
 (setq org-latex-listings 'listings)
 
+(unless (boundp 'org-latex-prefer-user-labels)
+  (setq org-latex-prefer-user-labels t)
+  )
+
 ;; (org-link-set-parameters
 ;;  "red"
 ;;  :follow (lambda (path) (message "You clicked me."))
