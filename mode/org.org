@@ -1,3 +1,4 @@
+
 # 
 #   Copyright (C) 2014-2019 Philipp Paulweber
 #   All rights reserved.
@@ -64,7 +65,6 @@
 #+latex_header: \usetikzlibrary{plotmarks}
 
 #+latex_header: \usepackage[absolute,overlay]{textpos}
-#+latex_header: \usepackage[inline]{enumitem}
 #+latex_header: \usepackage{multirow}
 #+latex_header: \usepackage{subfiles}
 #+latex_header: \usepackage{setspace}
