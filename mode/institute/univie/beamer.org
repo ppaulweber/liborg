@@ -62,7 +62,7 @@
 
 #+latex: \addtobeamertemplate{frametitle}{}{
 #+latex:   \begin{textblock*}{\textwidth}(3.125mm,3mm) \scriptsize
-#+latex:     \textcolor{black}{\insertsectionhead}
+#+latex:     \textcolor{univie}{\textbf{\insertsectionhead}}
 #+latex:   \end{textblock*}
 #+latex:   \begin{textblock*}{\textwidth}(1mm,.95\paperheight) \tiny %\scalebox{.375}{}
 #+latex:     \textcolor{black!50}{\insertnavigation{\textwidth}}
