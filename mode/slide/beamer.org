@@ -42,7 +42,7 @@
 #+include: slide.org
 
 #+latex_class: slide-beamer
-#+latex_class_options: [presentation, smaller]
+#+latex_class_options: [presentation, smaller, usepdftitle=false]
 
 #+options: H:2 toc:nil TeX:t LaTeX:t skip:nil d:nil todo:t pri:nil tags:not-in-toc
 #+columns: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
