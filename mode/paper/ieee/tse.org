@@ -1,4 +1,4 @@
 
 #+include: master.org
 
-#+latex_class_options: [journal]
+#+latex_class_options: [journal,compsoc]
