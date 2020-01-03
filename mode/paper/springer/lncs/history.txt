@@ -88,7 +88,7 @@ Version history for the LLNCS LaTeX2e class
                                   Saverio Cittadini, Istituto Tecnico
                                   Industriale "Tito Sarrocchi" - Siena
 
-28.01.02  llncs.cls        2.12   fixed footnote fix ; error reported by
+28.01.02  llncs.cls        2.12   fixed footnote fix; error reported by
                                   Chris Mesterharm, CS Dept. Rutgers - NJ
 
 28.01.02  llncs.cls        2.13   fixed the fix (programmer needs vacation)
@@ -126,7 +126,14 @@ Version history for the LLNCS LaTeX2e class
 27.09.13  llncs.cls        2.18   fixed "ngerman" incompatibility; solution provided
                                   by Bastian Pfleging, University of Stuttgart
 
-31.03.14  llncs.cls        2.19   removed spurious blanks from "babel" texts,
-                                  problem reported by Piotr Stera, Silesian University
-                                  of Technology, Gliwice, Poland
+04.09.17  llncs.cls        2.19   introduced \orcidID command
 
+10.03.18  llncs.cls        2.20   adjusted \doi according to CrossRef requirements;
+                                  TOC: removed affiliation numbers
+
+          splncs04.bst            added doi field;
+                                  bold journal numbers
+
+          samplepaper.tex         new sample paper
+
+          llncsdoc.pdf            new LaTeX class documentation

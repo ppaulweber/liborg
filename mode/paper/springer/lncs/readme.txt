@@ -11,20 +11,9 @@ It consists of the following files:
 
   llncs.cls          the LaTeX2e document class
 
-  llncs.dem          the sample input file
+  samplepaper.tex    a sample paper
+  fig1.eps           a figure used in the sample paper
 
-  llncs.doc          the documentation of the class (LaTeX source)
   llncsdoc.pdf       the documentation of the class (PDF version)
-  llncsdoc.sty       the modification of the class for the documentation
-  llncs.ind          an external (faked) author index file
-  subjidx.ind        subject index demo from the Springer book package
-  llncs.dvi          the resultig DVI file (remember to use binary transfer!)
 
-  sprmindx.sty       supplementary style file for MakeIndex
-                     (usage: makeindex -s sprmindx.sty <yourfile.idx>)
-
-  splncs03.bst       current LNCS BibTeX style with aphabetic sorting
-
-  aliascnt.sty       part of the Oberdiek bundle; allows more control over
-                     the counters associated to any numbered item
-  remreset.sty       by David Carlisle
+  splncs04.bst       current LNCS BibTeX style with alphabetic sorting
