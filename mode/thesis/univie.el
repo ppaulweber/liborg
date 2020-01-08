@@ -1,9 +1,9 @@
 ;
-;   Copyright (c) 2014-2017 Philipp Paulweber
+;   Copyright (C) 2014-2020 Philipp Paulweber
 ;   All rights reserved.
 ;
 ;   Developed by: Philipp Paulweber
-;                 https://github.com/ppaulweber/liborg
+;                 <https://github.com/ppaulweber/liborg>
 ;
 ;   This file is part of liborg.
 ;
