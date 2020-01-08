@@ -39,7 +39,7 @@
 #   statement from your version.
 # 
 
-#+latex_header: \lstdefinelanguage{casm}
+#+latex_header: \lstdefinelanguage{tui}
 #+latex_header: { basicstyle         = \ttfamily\scriptsize
 #+latex_header: , keywordstyle       = \color{blue}\bfseries
 #+latex_header: , commentstyle       = \color{black!50}\emph
@@ -61,22 +61,9 @@
 #+latex_header: , morecomment        = [l]{//}
 #+latex_header: , morecomment        = [l]{///}
 #+latex_header: , morecomment        = [s]{/*}{*/}
-#+latex_header: , morestring         = [b]"
+#+latex_header: , morestring         = [b]'
 #+latex_header: , sensitive          = true
 #+latex_header: , escapeinside       = {@(}{)@}
 #+latex_header: , morekeywords       = 
-#+latex_header:   { CASM, init
-#+latex_header:   , function, derived, rule, enumeration, controlled, symbolic, static
-#+latex_header:   , implement, behavior, for, domain, structure, this, Object
-#+latex_header:   , true, false, self, undef
-#+latex_header:   , self, Agent
-#+latex_header:   , Boolean, Integer, Binary, String, Rational, Decimal
-#+latex_header:   , Range, Tuple, Record, List, Set
-#+latex_header:   , @
-#+latex_header:   , par, endpar, seq, endseq
-#+latex_header:   , skip, call, let, if, then, else, case, of, forall, in, iterate, do
-#+latex_header:   , choose, exists, with, while
-#+latex_header:   , +, -, *, /, %, not, and, or, xor, implies, pow, ^
-# latex_header:   , assert, abort, assume, impossible, print, println, debug
-#+latex_header:   }
+#+latex_header:   { error, ~ }
 #+latex_header: }
