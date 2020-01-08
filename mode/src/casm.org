@@ -68,6 +68,7 @@
 #+latex_header:   { CASM, init
 #+latex_header:   , function, derived, rule, enumeration, controlled, symbolic, static
 #+latex_header:   , implement, behavior, for, domain, structure, this, Object
+#+latex_header:   , using, new
 #+latex_header:   , true, false, self, undef
 #+latex_header:   , self, Agent
 #+latex_header:   , Boolean, Integer, Binary, String, Rational, Decimal
