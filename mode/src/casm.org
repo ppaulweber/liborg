@@ -67,12 +67,10 @@
 #+latex_header: , morekeywords       = 
 #+latex_header:   { CASM, init
 #+latex_header:   , function, derived, rule, enumeration, controlled, symbolic, static
-#+latex_header:   , implement, behavior, for, domain, structure, this, Object
-#+latex_header:   , using, new
-#+latex_header:   , true, false, self, undef
-#+latex_header:   , self, Agent
-#+latex_header:   , Boolean, Integer, Binary, String, Rational, Decimal
-#+latex_header:   , Range, Tuple, Record, List, Set
+#+latex_header:   , implement, behavior, for, domain, structure, using, new
+#+latex_header:   , undef, true, false, self, this
+#+latex_header:   , Agent, Boolean, Integer, Binary, String, Rational, Decimal
+#+latex_header:   , Range, Tuple, Record, List, Set, Void, Object
 #+latex_header:   , @
 #+latex_header:   , par, endpar, seq, endseq
 #+latex_header:   , skip, call, let, if, then, else, case, of, forall, in, iterate, do
