@@ -71,11 +71,11 @@
 #+latex_header:   , undef, true, false, self, this
 #+latex_header:   , Agent, Boolean, Integer, Binary, String, Rational, Decimal
 #+latex_header:   , Range, Tuple, Record, List, Set, Void, Object
-#+latex_header:   , @
 #+latex_header:   , par, endpar, seq, endseq
 #+latex_header:   , skip, call, let, if, then, else, case, of, forall, in, iterate, do
 #+latex_header:   , choose, exists, with, while
-#+latex_header:   , +, -, *, /, %, not, and, or, xor, implies, pow, ^
+#+latex_header:   , not, and, or, xor, implies, pow
 # latex_header:   , assert, abort, assume, impossible, print, println, debug
+# latex_header:   , +, -, *, /, %, ^, @
 #+latex_header:   }
 #+latex_header: }
