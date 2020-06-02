@@ -1,0 +1,5 @@
+
+#+include: master.org
+
+#+latex_class_options: [manuscript, acmsmall, screen]
+# latex_class_options: [review, timestamp]
