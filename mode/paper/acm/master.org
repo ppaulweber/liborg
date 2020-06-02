@@ -1,10 +1,8 @@
+# 
 
 # http://www.acm.org/publications/proceedings-template
 
-# 2017 ACM Master Article Template
-# Current ACM Article Template - December 19, 2016
-# The official 2017 ACM Master article template, 
-# consolidates 8 individual ACM journal and ACM Proceedings.
+# ACM Master Article Template
 
 #+include: ../paper.org
 
