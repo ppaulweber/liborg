@@ -65,5 +65,6 @@
 #+macro: field_label_en      Field of study as it appears on the student record sheet
 #+macro: supervisor_label_de Betreut von
 #+macro: supervisor_label_en Supervisor
+#+macro: title_box           75
 
 #+include: titlepage_background.org
